@@ -1,0 +1,1743 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="light" />
+    <title>Local Chat</title>
+    <style>
+      :root { font: 14px/1.5 Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif; color: #20231f; background: #f7f7f4; font-synthesis: none; }
+      * { box-sizing: border-box; }
+      body { margin: 0; min-width: 360px; height: 100vh; height: 100dvh; overflow: hidden; }
+      button, textarea { font: inherit; }
+      button { color: inherit; }
+      :focus-visible { outline: 2px solid #71876a; outline-offset: 2px; }
+      .shell { display: grid; grid-template-columns: 260px minmax(0, 1fr); height: 100vh; padding: 10px; gap: 10px; }
+      aside { display:flex; flex-direction:column; background:#f0f0ed; border-radius:18px; padding:18px 12px 12px; min-height:0; }
+      .brand { display:flex; align-items:center; gap:10px; font-weight:700; font-size:15px; padding:0 8px 22px; }
+      .mark { display:grid; place-items:center; width:28px; height:28px; background:#20231f; color:#fff; border-radius:9px; font-weight:800; }
+      .nav-button { width:100%; border:0; background:transparent; text-align:left; border-radius:9px; padding:10px 9px; font-weight:560; cursor:pointer; }
+      .nav-button:hover, .history-item:hover { background:#e6e6e2; }
+      .nav-label { vertical-align:middle; }
+      .sidebar-import-spinner { display:inline-block; width:13px; height:13px; margin-left:7px; vertical-align:-2px; border:2px solid #d4dbcf; border-top-color:#65785c; border-radius:50%; }
+      @media (prefers-reduced-motion:no-preference) { .sidebar-import-spinner { animation:collection-spin 850ms linear infinite; } }
+      .app-dialog { width:min(460px,calc(100vw - 32px)); max-height:min(80vh,680px); padding:0; border:1px solid #e5e7e1; border-radius:16px; color:#20231f; background:#fff; box-shadow:0 24px 80px #151a1433; }
+      .app-dialog::backdrop { background:#1c211b66; backdrop-filter:blur(2px); }
+      .dialog-content { padding:22px; }
+      .sleep-warning-mark { width:34px; height:34px; display:grid; place-items:center; margin-bottom:12px; border-radius:11px; background:#fff0ee; color:#a43c30; font-weight:750; font-size:17px; }
+      .dialog-content h2 { margin:0; font-size:18px; letter-spacing:-.02em; }
+      .dialog-description { margin:8px 0 18px; color:#6f756b; line-height:1.55; }
+      .dialog-actions { display:flex; justify-content:flex-end; gap:8px; margin-top:20px; }
+      .dialog-actions button,.dialog-secondary { border:1px solid #e1e3dc; border-radius:9px; padding:8px 12px; background:#fff; cursor:pointer; }
+      .dialog-actions .dialog-primary { border-color:#242722; background:#242722; color:#fff; font-weight:600; }
+      .dialog-check { display:flex; align-items:flex-start; gap:9px; color:#565d52; font-size:12px; }
+      .dialog-check input { margin-top:3px; accent-color:#64785c; }
+      .collection-target-picker { position:relative; }
+      .collection-target-search { width:100%; border:1px solid #dedfda; border-radius:10px; padding:10px 12px; background:#fff; color:inherit; }
+      .collection-target-search:focus-visible { outline:2px solid #bbc6b5; outline-offset:2px; }
+      .collection-target-options { display:flex; flex-direction:column; max-height:168px; overflow:auto; margin-top:7px; padding:4px; border:1px solid #e8e9e4; border-radius:10px; background:#fff; scrollbar-width:thin; scrollbar-color:#b8bcb3 transparent; }
+      .collection-target-options:empty { display:none; }
+      .collection-target-option { min-height:38px; display:flex; align-items:center; width:100%; border:0; border-radius:7px; padding:8px 10px; background:transparent; text-align:left; color:#41473f; cursor:pointer; }
+      .collection-target-option:hover,.collection-target-option[aria-selected="true"] { background:#f0f3ed; }
+      .collection-target-option[disabled] { color:#969a92; cursor:default; }
+      .collection-target-option-empty { padding:9px 10px; color:#858a80; font-size:12px; }
+      .collection-target-chips { display:flex; flex-wrap:wrap; gap:7px; margin-top:13px; }
+      .collection-target-chip { display:inline-flex; align-items:center; gap:7px; padding:5px 8px; border:1px solid #dfe4da; border-radius:999px; background:#f5f7f2; color:#394333; font-size:12px; transition:background-color 120ms ease,border-color 120ms ease; }
+      .collection-target-chip[data-remove-armed="true"] { border-color:#9aa88f; background:#e8eee3; }
+      .collection-target-chip button { border:0; padding:0 2px; background:transparent; color:#66715f; cursor:pointer; }
+      .collection-target-empty { color:#858a80; font-size:12px; }
+      .section-label { padding:23px 9px 8px; color:#787c74; font-size:11px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; }
+      .section-head { display:flex; align-items:center; justify-content:space-between; padding-right:5px; }
+      .section-head .section-label { padding-bottom:8px; }
+      .small-button { border:0; background:transparent; color:#60665c; font-size:12px; padding:5px 7px; border-radius:7px; cursor:pointer; }
+      .small-button:hover { background:#e5e6e0; }
+      .notice { position:fixed; z-index:8; top:18px; right:18px; display:flex; align-items:flex-start; gap:12px; padding:12px 14px; border:1px solid; border-radius:11px; box-shadow:0 8px 28px #0002; max-width:min(90vw,480px); }
+      .notice[data-kind="warning"], .notice[data-kind="error"] { color:#8f291f; border-color:#e7aaa1; background:#fff0ee; }
+      .notice[data-kind="success"] { color:#17623d; border-color:#a9d7ba; background:#edfbf1; }
+      .notice[data-kind="info"] { color:#24517d; border-color:#b3cbe3; background:#eff7ff; }
+      .notice-message { flex:1; }
+      .notice-close { border:0; border-radius:6px; padding:0 5px; background:transparent; color:inherit; font-size:18px; line-height:1.2; cursor:pointer; }
+      .drop-overlay { position:fixed; inset:0; z-index:5; display:grid; place-items:center; border:3px dashed #7b9273; background:#f6f8f2ed; color:#30372d; font-size:22px; font-weight:650; pointer-events:none; }
+      .drop-overlay[hidden], .notice[hidden], .welcome[hidden], .timeline-nav[hidden], [hidden] { display:none !important; }
+      .history { flex:1; min-height:0; overflow:auto; padding-right:2px; scrollbar-width:thin; scrollbar-color:#b8bcb3 transparent; }
+      .history::-webkit-scrollbar { width:8px; }
+      .history::-webkit-scrollbar-track { background:transparent; }
+      .history::-webkit-scrollbar-thumb { background:#c4c8bf; border:2px solid transparent; border-radius:99px; background-clip:padding-box; }
+      .history::-webkit-scrollbar-thumb:hover { background:#9da398; border:2px solid transparent; background-clip:padding-box; }
+      .history-item { border:0; background:transparent; width:100%; padding:9px; text-align:left; border-radius:9px; color:#666a63; }
+      .history-row { display:flex; align-items:center; gap:3px; position:relative; margin:2px 0; }
+      .history-open { flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+      .history-open.active { background:#e2e4dd; color:#282d27; }
+      .history-progress { flex:0 0 auto; width:13px; height:13px; border:2px solid #d9ded4; border-top-color:#5d7654; border-radius:50%; }
+      @media (prefers-reduced-motion:no-preference) { .history-progress { animation:collection-spin 850ms linear infinite; } }
+      .history-actions summary { list-style:none; width:30px; height:32px; display:grid; place-items:center; border-radius:7px; cursor:pointer; color:#72766f; }
+      .history-actions summary::-webkit-details-marker { display:none; }
+      .history-actions summary:hover { background:#e4e6df; }
+      .history-actions { opacity:0; pointer-events:none; transition:opacity 120ms ease; }
+      .history-row:hover .history-actions,.history-row:focus-within .history-actions,.history-actions[open] { opacity:1; pointer-events:auto; }
+      .history-menu { position:fixed; z-index:9; width:155px; padding:5px; border:1px solid #e4e5df; border-radius:10px; background:#fff; box-shadow:0 8px 25px #20231f20; }
+      .history-menu button { width:100%; padding:7px 9px; border:0; border-radius:7px; text-align:left; background:transparent; color:#444940; font-size:12px; cursor:pointer; }
+      .history-menu button:hover { background:#f2f3ef; }
+      .archive-toggle { margin-left:8px; }
+      .sidebar-foot { margin-top:auto; border-top:1px solid #deded9; padding:13px 9px 3px; color:#777b73; font-size:12px; }
+      main { display:flex; flex-direction:column; min-width:0; min-height:0; background:#fff; border:1px solid #ecece8; border-radius:18px; overflow:hidden; }
+      header { height:58px; display:flex; align-items:center; justify-content:space-between; padding:0 22px; border-bottom:1px solid #f0f0ed; }
+      .chat-title { font-weight:650; }
+      .header-left { display:flex; align-items:center; gap:14px; min-width:0; }
+      .header-right { display:flex; align-items:center; justify-content:flex-end; min-width:0; }
+      .timeline-nav { display:flex; align-items:center; gap:3px; color:#777b73; font-size:11px; }
+      .timeline-nav button { width:25px; height:26px; border:0; border-radius:6px; background:transparent; color:#656a61; cursor:pointer; }
+      .timeline-nav button:hover:not(:disabled) { background:#f0f1ed; }
+      .timeline-nav button:disabled { color:#b9bcb6; cursor:default; }
+      .conversation { overflow-y:auto; flex:1; padding:34px 20px 22px; scroll-behavior:smooth; }
+      .welcome { min-height:100%; display:grid; place-content:center; text-align:center; padding-bottom:8vh; }
+      .welcome-icon { margin:0 auto 20px; width:44px; height:44px; display:grid; place-items:center; border:1px solid #e8e8e3; border-radius:14px; font-size:20px; color:#666b61; }
+      h1 { margin:0; font-size:clamp(24px, 3vw, 34px); letter-spacing:-.045em; font-weight:650; }
+      .welcome p { color:#858980; margin:9px 0 0; }
+      .messages { width:min(780px, 100%); margin:0 auto; display:flex; flex-direction:column; gap:25px; }
+      .message { display:flex; flex-direction:column; max-width:88%; }
+      .message.user { align-self:flex-end; align-items:flex-end; }
+      .message.assistant { align-self:flex-start; }
+      .bubble { white-space:pre-wrap; overflow-wrap:anywhere; padding:13px 16px; border-radius:16px; background:#f2f2ef; }
+      .assistant .bubble { background:transparent; padding:0; }
+      .meta { display:flex; flex-wrap:wrap; gap:7px 15px; color:#73786f; font-size:11px; margin:8px 3px 0; }
+      .metric { white-space:nowrap; }
+      .metric strong { color:#555b52; font-weight:650; letter-spacing:.01em; }
+      .metric { position:relative; cursor:help; }
+      .metric::after { content:attr(data-tooltip); position:absolute; z-index:15; left:50%; bottom:calc(100% + 8px); transform:translate(-50%, 3px); width:max-content; max-width:min(260px, 70vw); white-space:normal; padding:6px 9px; border-radius:8px; background:#20231f; color:#fff; font-size:11px; font-weight:500; line-height:1.4; box-shadow:0 4px 14px #0002; opacity:0; pointer-events:none; transition:opacity .12s ease, transform .12s ease; }
+      .metric:hover::after,.metric:focus-visible::after { opacity:1; transform:translate(-50%, 0); }
+      .markdown { white-space:normal; line-height:1.65; }
+      .markdown > :first-child { margin-top:0; } .markdown > :last-child { margin-bottom:0; }
+      .markdown p { margin:0 0 12px; } .markdown h1,.markdown h2,.markdown h3 { margin:20px 0 8px; font-size:1.08em; letter-spacing:-.015em; }
+      .markdown ul,.markdown ol { margin:5px 0 12px; padding-left:24px; } .markdown li + li { margin-top:3px; }
+      .markdown blockquote { margin:10px 0; padding:2px 12px; border-left:3px solid #c7d0bf; color:#62685e; }
+      .markdown code { padding:2px 5px; border-radius:5px; background:#f0f1ed; font:.9em ui-monospace,Consolas,monospace; }
+      .markdown pre { overflow:auto; padding:12px; border-radius:10px; background:#f3f4f1; } .markdown pre code { padding:0; background:transparent; }
+      .markdown a { color:#365f82; text-decoration:underline; text-underline-offset:2px; }
+      .thinking-indicator { display:inline-flex; align-items:center; gap:7px; color:#70766c; font-size:13px; }
+      .generation-eta { margin:6px 2px 0; color:#777d72; font-size:12px; }
+      .generation-eta::before { content:'◷'; margin-right:6px; color:#65785c; }
+      .thinking-dots { display:inline-flex; align-items:center; gap:3px; }
+      .thinking-dots span { width:4px; height:4px; border-radius:50%; background:#798272; transform:translateY(0); }
+      @media (prefers-reduced-motion:no-preference) { .thinking-dots span { animation:thinking-bounce 900ms cubic-bezier(.22,.68,0,1.1) infinite; } .thinking-dots span:nth-child(2) { animation-delay:120ms; } .thinking-dots span:nth-child(3) { animation-delay:240ms; } }
+      @keyframes thinking-bounce { 0%,60%,100% { transform:translateY(0); } 30% { transform:translateY(-4px); } }
+      .collection-page { flex:1; min-height:0; display:flex; flex-direction:column; }
+      .collection-page-head { display:flex; align-items:center; justify-content:space-between; gap:16px; padding:23px 28px 17px; border-bottom:1px solid #f0f0ed; }
+      .collection-page-head h1 { font-size:22px; } .collection-page-head p { margin:4px 0 0; color:#7c8178; font-size:12px; }
+      .collection-page-head-left { display:flex; align-items:flex-start; gap:12px; min-width:0; }
+      .collection-detail-back { width:34px; height:34px; flex:0 0 auto; display:grid; place-items:center; border:1px solid #e5e7e1; border-radius:10px; background:#fff; color:#343a31; font-size:23px; line-height:1; font-weight:750; cursor:pointer; }
+      .collection-detail-back:hover { background:#f3f5f1; border-color:#ccd3c7; }
+      .collection-page-body { overflow:auto; padding:20px 28px 30px; scrollbar-width:thin; scrollbar-color:#b8bcb3 transparent; }
+      .collection-page-body::-webkit-scrollbar { width:8px; } .collection-page-body::-webkit-scrollbar-thumb { background:#c4c8bf; border-radius:99px; }
+      .collection-create { display:flex; gap:9px; max-width:560px; margin-bottom:20px; }
+      .collection-create input { flex:1; min-width:0; border:1px solid #dedfda; border-radius:9px; padding:9px 11px; }
+      .collection-import-status { max-width:1200px; margin:0 0 18px; padding:13px 15px; border:1px solid #dce3d7; border-radius:11px; background:#f7f9f5; color:#384333; }
+      .collection-import-status[data-phase="error"] { border-color:#e7aaa1; background:#fff3f0; color:#8f291f; }
+      .collection-import-status[hidden] { display:none; }
+      .import-status-heading { display:flex; align-items:center; justify-content:space-between; gap:9px; font-weight:650; }
+      .import-status-close { flex:0 0 auto; width:26px; height:26px; border:0; border-radius:7px; background:transparent; color:inherit; font-size:18px; line-height:1; cursor:pointer; }
+      .import-status-close:hover { background:#0000000d; }
+      .import-file-list { display:grid; gap:7px; margin-top:12px; }
+      .import-file-row { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:3px 12px; align-items:center; padding:9px 10px; border:1px solid #e3e7df; border-radius:8px; background:#fff9; }
+      .import-file-name { min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:12px; font-weight:600; }
+      .import-file-state { color:#73796f; font-size:11px; white-space:nowrap; }
+      .import-file-error { grid-column:1/-1; color:#8f291f; font-size:11px; overflow-wrap:anywhere; }
+      .import-file-retry { grid-column:2; grid-row:1 / span 2; border:1px solid #d7ddd2; border-radius:7px; background:#fff; padding:5px 9px; color:#46533f; font-size:11px; cursor:pointer; }
+      .import-file-retry:hover:not(:disabled) { background:#f0f3ed; }
+      .import-file-retry:disabled { opacity:.55; cursor:default; }
+      .import-status-detail { color:#72786e; font-size:12px; margin-top:4px; overflow-wrap:anywhere; }
+      .import-progress-track { height:4px; margin-top:10px; overflow:hidden; border-radius:99px; background:#e6e9e2; }
+      .import-progress-fill { width:100%; height:100%; border-radius:inherit; background:#74876b; transform:scaleX(0); transform-origin:left center; transition:transform 180ms cubic-bezier(.2,.7,.2,1); }
+      .collection-progress-spinner { flex:0 0 auto; width:17px; height:17px; border:2px solid #dfe4da; border-top-color:#65785c; border-radius:50%; }
+      @media (prefers-reduced-motion:no-preference) { .collection-progress-spinner { animation:collection-spin 850ms linear infinite; } }
+      @keyframes collection-spin { to { transform:rotate(360deg); } }
+      @media (prefers-reduced-motion:reduce) { .import-progress-fill { transition:none; } }
+      #collection-manager-list { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr)); gap:10px; max-width:1200px; }
+      .collection-card { min-width:0; display:flex; align-items:center; justify-content:space-between; gap:12px; padding:14px 15px; border:1px solid #e9eae5; border-radius:12px; }
+      .collection-card-main { min-width:0; } .collection-card-name { display:block; font-weight:650; overflow-wrap:anywhere; } .collection-card-count { display:block; color:#858a80; font-size:12px; }
+      .collection-open { display:block; width:100%; text-align:left; border:0; padding:0; background:transparent; color:inherit; cursor:pointer; }
+      .collection-open:hover .collection-card-name { color:#52664b; text-decoration:underline; text-underline-offset:3px; }
+      .collection-card-actions { display:flex; flex-wrap:wrap; justify-content:flex-end; gap:5px; flex:0 0 auto; }
+      .collection-card-actions button,.page-button { border:1px solid #e4e5df; border-radius:8px; background:#fff; padding:7px 10px; color:#4f554b; font-size:12px; cursor:pointer; }
+      .collection-card-actions button:hover,.page-button:hover { background:#f4f5f1; } .collection-empty { color:#858a80; padding:20px 2px; }
+      .files-toolbar { display:flex; justify-content:space-between; align-items:center; gap:12px; max-width:880px; margin:0 0 12px; }
+      .files-toolbar span { color:#777d73; font-size:12px; }
+      .files-toolbar button { border:1px solid #e4e5df; border-radius:8px; background:#fff; padding:7px 10px; color:#8b342c; font-size:12px; cursor:pointer; }
+      .file-row { display:grid; grid-template-columns:auto minmax(0,1fr); gap:11px; max-width:880px; padding:12px 13px; border:1px solid #e9eae5; border-radius:10px; margin-bottom:8px; }
+      .file-row input { align-self:start; margin-top:4px; accent-color:#526b4b; }
+      .file-row-main { min-width:0; } .file-row-name { font-weight:600; overflow-wrap:anywhere; }
+      .file-row-path { margin-top:3px; color:#858a80; font-size:11px; overflow-wrap:anywhere; }
+      .file-row-main { display:grid; grid-template-columns:minmax(0,1fr) auto; align-items:start; gap:4px 12px; }
+      .file-row-main .file-row-path { grid-column:1/-1; }
+      .file-content-button { border:1px solid #e4e5df; border-radius:8px; background:#fff; padding:6px 9px; color:#4f554b; font-size:11px; cursor:pointer; }
+      .file-content-button:hover { background:#f4f5f1; }
+      .document-content-dialog { width:min(900px,calc(100vw - 32px)); max-width:none; max-height:min(82vh,900px); padding:0; border:1px solid #e5e6e0; border-radius:16px; box-shadow:0 22px 70px #20231f30; }
+      .document-content-dialog::backdrop { background:#20231f55; backdrop-filter:blur(3px); }
+      .document-content-shell { display:flex; flex-direction:column; max-height:min(82vh,900px); padding:20px; }
+      .document-content-head { display:flex; align-items:center; justify-content:space-between; gap:12px; border-bottom:1px solid #eeefea; padding-bottom:12px; }
+      .document-content-head h2 { margin:0; font-size:17px; overflow-wrap:anywhere; }
+      .document-content-close { width:32px; height:32px; border:0; border-radius:8px; background:#f2f3ef; color:#343a31; font-size:20px; cursor:pointer; }
+      .document-content-body { overflow:auto; margin:14px 0 0; color:#3d423b; font:13px/1.65 ui-monospace,Consolas,monospace; white-space:pre-wrap; overflow-wrap:anywhere; }
+      .error { color:#9d3b2d; background:#fff3f0; border:1px solid #f2d4ce; border-radius:12px; padding:11px 13px; }
+      .composer-wrap { padding:0 22px 20px; }
+      .attachment-strip { width:min(820px,100%); margin:0 auto 8px; display:flex; flex-wrap:wrap; gap:6px; }
+      .attachment-chip { display:inline-flex; align-items:center; gap:7px; max-width:100%; padding:5px 9px; border:1px solid #e7e8e3; border-radius:8px; background:#f8f8f6; color:#53584f; font-size:11px; }
+      .attachment-name { max-width:min(240px,50vw); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+      .attachment-state { color:#7b8176; white-space:nowrap; }
+      .attachment-spinner { width:12px; height:12px; border:1.5px solid #cbd0c5; border-top-color:#536b4c; border-radius:50%; animation:spin .7s linear infinite; }
+      @keyframes spin { to { transform:rotate(360deg); } }
+      .attachment-remove { border:0; padding:0 2px; background:transparent; color:#7b8176; cursor:pointer; font-size:14px; }
+      .message-attachments { display:flex; flex-wrap:wrap; justify-content:flex-end; gap:8px; margin:8px 3px 0; }
+      .message-media-image { display:block; width:min(360px,64vw); height:min(260px,32vh); object-fit:contain; border-radius:12px; background:#f2f3ef; }
+      .message-media-audio { display:block; width:min(360px,75vw); height:40px; }
+      .message-actions { display:flex; align-items:center; gap:3px; margin:3px 2px 0; color:#747a70; }
+      .message-actions button { width:28px; height:27px; display:grid; place-items:center; border:0; border-radius:7px; background:transparent; color:inherit; font-size:15px; cursor:pointer; }
+      .message-actions button:hover { background:#f0f1ed; color:#252a23; }
+      .message-actions button:disabled { opacity:.45; cursor:default; }
+      .message-actions button[aria-label="Delete turn"]:hover,.message-actions button[aria-label="Remove response"]:hover { background:#fff0ee; color:#a33a2b; }
+      .edit-actions { display:flex; align-items:center; gap:7px; }
+      .cancel-edit { border:1px solid #e2e4dd; border-radius:9px; padding:8px 11px; background:#fff; color:#596055; cursor:pointer; }
+      .timeline-inline { display:flex; align-items:center; gap:2px; align-self:flex-end; margin:3px 2px 0; color:#777b73; font-size:11px; }
+      .timeline-inline button { width:25px; height:23px; border:0; border-radius:6px; background:transparent; color:#656a61; cursor:pointer; }
+      .timeline-inline button:hover:not(:disabled) { background:#f0f1ed; }
+      .timeline-inline button:disabled { color:#b9bcb6; cursor:default; }
+      .composer { width:min(820px, 100%); margin:0 auto; display:flex; align-items:flex-end; gap:10px; border:1px solid #dedfda; border-radius:17px; padding:10px 11px 10px 16px; box-shadow:0 3px 14px #1a241012; }
+      .collection-picker { position:relative; align-self:center; flex:0 0 auto; z-index:8; }
+      .collection-picker summary { list-style:none; display:flex; align-items:center; cursor:pointer; border:1px solid #e4e6df; background:#f7f8f5; border-radius:999px; padding:7px 11px; color:#454b42; font-size:12px; font-weight:560; white-space:nowrap; transition:background-color 140ms ease,border-color 140ms ease; }
+      .collection-picker summary:hover,.collection-picker[open] summary { border-color:#cfd5c9; background:#eef1eb; }
+      .collection-picker summary::after { content:""; width:6px; height:6px; margin-left:9px; border-right:1.5px solid #747b70; border-bottom:1.5px solid #747b70; transform:translateY(-1px) rotate(45deg); transition:transform 140ms ease; }
+      .collection-picker[open] summary::after { transform:translateY(2px) rotate(225deg); }
+      .collection-picker summary::-webkit-details-marker { display:none; }
+      .collection-options { position:absolute; z-index:7; top:calc(100% + 9px); right:0; width:min(290px, calc(100vw - 40px)); max-height:min(340px, 58vh); overflow:auto; padding:9px; border:1px solid #e4e6df; border-radius:15px; background:#fff; box-shadow:0 16px 38px #20231f24; }
+      .collection-options label { display:flex; align-items:center; gap:10px; padding:9px 10px; border-radius:9px; color:#41473f; cursor:pointer; transition:background-color 120ms ease; }
+      .collection-options label:hover { background:#f3f5f1; }
+      .collection-options input { width:15px; height:15px; margin:0; accent-color:#536b4c; }
+      .collection-option-actions { display:flex; gap:5px; border-bottom:1px solid #eeefea; padding:2px 4px 8px; margin-bottom:5px; }
+      .collection-option-actions button { border:0; background:transparent; padding:5px 7px; border-radius:7px; color:#5e6c55; font-size:11px; font-weight:600; cursor:pointer; }
+      .collection-option-actions button:hover { background:#f0f3ed; }
+      .attach { width:36px; height:36px; flex:0 0 auto; display:grid; place-items:center; border:0; border-radius:10px; background:transparent; color:#666b62; cursor:pointer; }
+      .attach:hover { background:#f0f1ed; color:#292e28; }
+      .sources { margin:8px 2px 0; border-top:1px solid #eeefea; padding-top:7px; color:#73796f; font-size:11px; }
+      .sources summary { cursor:pointer; width:max-content; }
+      .source-item { margin-top:8px; padding:9px 10px; border-left:2px solid #c6d0bd; background:#f8f9f6; color:#5c6258; white-space:pre-wrap; }
+      textarea { border:0; outline:0; resize:none; flex:1; min-width:40px; min-height:28px; max-height:160px; padding:4px 0; background:transparent; color:#20231f; }
+      textarea:focus-visible { outline:none; }
+      .composer:focus-within { outline:2px solid #bbc6b5; outline-offset:2px; }
+      textarea::placeholder { color:#999c94; }
+      .send { border:0; border-radius:11px; padding:8px 14px; background:#242722; color:#fff; font-weight:600; cursor:pointer; min-width:67px; }
+      .send.stop-generation { background:#a84438; }
+      .send.stop-generation:hover:not(:disabled) { background:#89362d; }
+      .send:hover { background:#3b4038; }
+      .send:disabled { opacity:.48; cursor:wait; }
+      @media (max-width:520px) { .header-left { gap:7px; } .timeline-nav { gap:0; } .timeline-label { max-width:62px; overflow:hidden; white-space:nowrap; } .composer { gap:5px; padding:8px; } .attach { width:32px; } }
+      @media (max-width:720px) { .shell { grid-template-columns:1fr; padding:0; gap:0; } aside { display:none; } main { border:0; border-radius:0; } header { padding:0 15px; } .conversation { padding:24px 15px; } .composer-wrap { padding:0 12px 12px; } .collection-picker summary { max-width:115px; overflow:hidden; text-overflow:ellipsis; } }
+      @media (prefers-reduced-motion:reduce) { *,*::before,*::after { scroll-behavior:auto !important; animation-duration:0.01ms !important; animation-iteration-count:1 !important; transition-duration:0.01ms !important; } }
+    </style>
+  </head>
+  <body>
+    <div class="shell">
+      <aside aria-label="Conversation navigation">
+        <div class="brand"><span class="mark" aria-hidden="true">L</span><span>Local Chat</span></div>
+        <button class="nav-button" id="new-chat" type="button">＋ &nbsp; New chat</button>
+        <button class="nav-button" id="collections-nav" type="button"><span class="nav-label">▦ &nbsp; Collections</span><span class="sidebar-import-spinner" id="sidebar-import-spinner" role="img" aria-label="Documents are being processed" title="Documents are being processed" hidden></span></button>
+        <div class="section-head"><div class="section-label" id="history-heading">Recent conversations</div><button class="small-button archive-toggle" id="archive-toggle" type="button" aria-pressed="false">Archived</button></div>
+        <div class="history" id="history-list"><div class="history-item" style="color:#92958d">Loading conversations…</div></div>
+        <div class="sidebar-foot" id="storage-detail">Checking encrypted history…</div>
+      </aside>
+      <main>
+        <header id="chat-header">
+          <div class="header-left"><div class="chat-title">New conversation</div><div class="timeline-nav" id="timeline-nav" aria-label="Conversation timelines" hidden><button id="timeline-prev" type="button" aria-label="Previous timeline">‹</button><span class="timeline-label" id="timeline-label">1 / 1</span><button id="timeline-next" type="button" aria-label="Next timeline">›</button></div></div>
+          <div class="header-right" id="header-right"></div>
+        </header>
+        <section class="conversation" id="conversation" aria-label="Chat messages" aria-live="polite">
+          <div class="welcome" id="welcome"><div><div class="welcome-icon" aria-hidden="true">✳</div><h1>What are we working on?</h1><p>Ask a question to begin. Your messages stay on this device.</p></div></div>
+          <div class="messages" id="messages"></div>
+        </section>
+        <div class="composer-wrap" id="composer-wrap">
+          <form class="composer" id="composer">
+            <button class="attach" id="attach-files" type="button" aria-label="Attach documents, images, or audio" title="Attach files to this message"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m8.5 12.5 6.8-6.8a3 3 0 0 1 4.2 4.2l-9.2 9.2a5 5 0 0 1-7.1-7.1l9.2-9.2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+            <details class="collection-picker" id="collection-picker"><summary id="collection-summary">All collections⌄</summary><div class="collection-options"><div class="collection-option-actions"><button type="button" id="select-all">Select all</button><button type="button" id="select-none">Clear</button></div><div id="collection-checkboxes"></div></div></details>
+            <textarea id="message-input" rows="1" maxlength="20000" aria-label="Message" placeholder="Message the local model…"></textarea>
+            <div class="edit-actions"><button class="cancel-edit" id="cancel-edit" type="button" hidden>Cancel</button><button class="send" id="send" type="submit">Send</button></div>
+          </form>
+        </div>
+        <section class="collection-page" id="collections-page" hidden aria-labelledby="collections-title">
+          <div class="collection-page-head"><div class="collection-page-head-left"><button class="collection-detail-back" id="collection-detail-back" type="button" aria-label="Back to all collections" title="Back to all collections" hidden>‹</button><div><h1 id="collections-title">Collections</h1><p id="collections-description">Keep project documents separate so each chat can search the right context.</p></div></div><button class="page-button" id="collections-back" type="button">Back to chat</button></div>
+          <div class="collection-page-body"><div class="collection-import-status" id="collection-import-status" role="status" aria-live="polite" hidden><div class="import-status-heading"><span id="import-status-message"></span><button class="import-status-close" id="import-status-close" type="button" aria-label="Dismiss import status" title="Dismiss" hidden>×</button></div><div class="import-status-detail" id="import-status-detail"></div><div class="import-progress-track" aria-hidden="true"><div class="import-progress-fill" id="import-progress-fill"></div></div><div class="import-file-list" id="import-file-list"></div></div><form class="collection-create" id="collection-create"><input id="collection-name" maxlength="50" aria-label="New collection name" placeholder="Name a collection" required /><button class="send" type="submit">Create collection</button></form><div id="collection-manager-list" aria-live="polite"></div><div id="collection-files-view" hidden><div class="files-toolbar"><label><input type="checkbox" id="select-all-files" /> Select all files</label><button type="button" id="delete-selected-files">Remove selected files</button></div><div id="collection-file-list"></div></div></div>
+        </section>
+      </main>
+    </div>
+    <div class="drop-overlay" id="drop-overlay" hidden>Drop files to import</div>
+    <div class="notice" id="notice" data-kind="info" role="status" aria-live="polite" hidden><span class="notice-message" id="notice-message"></span><button class="notice-close" id="notice-close" type="button" aria-label="Dismiss notification">×</button></div>
+    <dialog class="app-dialog" id="collection-change-dialog" aria-labelledby="collection-change-title"><form method="dialog" class="dialog-content"><h2 id="collection-change-title">Change collections for this chat?</h2><p class="dialog-description">This changes retrieval context for future messages only. Earlier answers keep the collections and sources they used.</p><label class="dialog-check"><input type="checkbox" id="skip-collection-warning" /><span>Don't show this warning again in this chat</span></label><div class="dialog-actions"><button value="cancel">Keep current selection</button><button class="dialog-primary" value="continue">Apply change</button></div></form></dialog>
+    <dialog class="app-dialog" id="collection-target-dialog" aria-labelledby="collection-target-title"><div class="dialog-content"><h2 id="collection-target-title">Add document to collections</h2><p class="dialog-description" id="collection-target-description">Choose one or more collections. The document will be indexed for future chats in those spaces.</p><div class="collection-target-picker"><input class="collection-target-search" id="collection-target-search" type="search" role="combobox" aria-autocomplete="list" aria-controls="collection-target-options" aria-expanded="true" aria-label="Search collections" placeholder="Search collections and press Enter" autocomplete="off" /><div class="collection-target-options" id="collection-target-options" role="listbox" aria-label="Available collections"></div></div><div class="collection-target-chips" id="collection-target-chips" aria-live="polite"></div><div class="dialog-actions"><button id="collection-target-cancel" type="button">Cancel</button><button class="dialog-primary" id="collection-target-confirm" type="button" disabled>Add to selected collections</button></div></div></dialog>
+    <dialog class="app-dialog" id="models-asleep-dialog" aria-labelledby="models-asleep-title" aria-describedby="models-asleep-description"><div class="dialog-content"><div class="sleep-warning-mark" aria-hidden="true">!</div><h2 id="models-asleep-title">The chat model is asleep</h2><p class="dialog-description" id="models-asleep-description">LFM3-Omni was unloaded to save memory after five minutes of inactivity. Load it now, or cancel and let the next message wake it automatically.</p><div class="dialog-actions"><button id="models-asleep-cancel" type="button">Cancel</button><button class="dialog-primary" id="models-asleep-load" type="button">Load model</button></div></div></dialog>
+    <dialog class="document-content-dialog" id="document-content-dialog" aria-labelledby="document-content-title"><div class="document-content-shell"><div class="document-content-head"><h2 id="document-content-title">Extracted document content</h2><button class="document-content-close" id="document-content-close" type="button" aria-label="Close document content">×</button></div><pre class="document-content-body" id="document-content-body"></pre></div></dialog>
+    <script>
+      const invoke = window.__TAURI__?.core?.invoke;
+      const form = document.querySelector('#composer');
+      const input = document.querySelector('#message-input');
+      const send = document.querySelector('#send');
+      const messages = document.querySelector('#messages');
+      const conversation = document.querySelector('#conversation');
+      const welcome = document.querySelector('#welcome');
+      let activeConversationId = null;
+      let activeConversationRootId = null;
+      let activeConversationArchived = false;
+      const activeGenerations = new Map();
+      let currentGenerationId = null;
+      let generationStopPending = false;
+      let lastObservedPromptSpeed = 16;
+      let lastObservedOutputSpeed = 12;
+      let importCollectionId = null;
+      let availableCollections = [];
+      let selectedCollectionIds = [];
+      let collectionsInitialized = false;
+      let branchFromMessageId = null;
+      let noticeTimeout = null;
+      let showArchived = false;
+      let activeTimelineIds = [];
+      let activeTimelineIndex = 0;
+      let currentCollectionPage = false;
+      let activeManagedCollectionId = null;
+      const processingCollectionIds = new Set();
+      const collectionWarningDismissedChats = new Set();
+      try { JSON.parse(localStorage.getItem('collection-warning-dismissed-chats') || '[]').forEach((id) => collectionWarningDismissedChats.add(String(id))); } catch (_) {}
+      let collectionProgressHideTimer = null;
+      let collectionImportFiles = [];
+      let collectionImportCollectionId = null;
+      let activeRetryFileIndex = null;
+      let targetCollectionSelection = [];
+      let targetCollectionBackspaceArmedId = null;
+      let targetCollectionActiveIndex = 0;
+      let pendingAttachments = [];
+      let branchEditMessageElement = null;
+      let editingOriginalCollectionIds = null;
+      let sleepWarningDismissed = false;
+      const collectionPicker = document.querySelector('#collection-picker');
+      document.querySelector('#header-right').append(collectionPicker);
+      const attachmentStrip = document.createElement('div');
+      attachmentStrip.className = 'attachment-strip';
+      attachmentStrip.id = 'attachment-strip';
+      attachmentStrip.hidden = true;
+      attachmentStrip.setAttribute('aria-live', 'polite');
+      document.querySelector('#composer-wrap').prepend(attachmentStrip);
+      document.querySelector('#attach-files').title = 'Attach files to this chat; they will not be added to a collection';
+      document.querySelector('#attach-files').setAttribute('aria-label', 'Attach files to this chat');
+
+      function showNotice(message, kind = 'info', durationMs = 5500) {
+        const notice = document.querySelector('#notice');
+        if (kind === 'info') {
+          if (/failed|failure|error|could not|not responding|pending|unsupported|must be|select .* collection|create .* collection/i.test(message)) kind = 'warning';
+          else if (/created|imported|reused|deleted|renamed|pinned|unpinned|archived|restored/i.test(message)) kind = 'success';
+        }
+        notice.querySelector('.notice-message').textContent = message;
+        notice.dataset.kind = kind;
+        notice.setAttribute('role', kind === 'warning' || kind === 'error' ? 'alert' : 'status');
+        notice.hidden = false;
+        clearTimeout(noticeTimeout);
+        noticeTimeout = kind === 'warning' || kind === 'error' || durationMs <= 0 ? null : setTimeout(() => { notice.hidden = true; }, durationMs);
+      }
+      document.querySelector('#notice-close').addEventListener('click', () => { document.querySelector('#notice').hidden = true; clearTimeout(noticeTimeout); });
+      document.querySelector('#import-status-close').addEventListener('click', () => {
+        if (processingCollectionIds.has(collectionImportCollectionId)) return;
+        if (collectionImportFiles.some((file) => file.status === 'failed')) {
+          showNotice('Only successfully indexed files are saved in this collection. Failed files were not added; you can retry them now or drop them again later.', 'warning');
+        }
+        document.querySelector('#collection-import-status').hidden = true;
+        clearTimeout(collectionProgressHideTimer);
+      });
+
+      function updateSendButton() {
+        if (currentGenerationId) {
+          send.textContent = generationStopPending ? 'Stopping…' : 'Stop';
+          send.setAttribute('aria-label', generationStopPending ? 'Stopping generation' : 'Stop generation');
+          send.title = generationStopPending ? 'Stopping generation' : 'Stop generation';
+          send.disabled = generationStopPending;
+          send.classList.toggle('stop-generation', true);
+          return;
+        }
+        send.textContent = branchFromMessageId == null ? 'Send' : 'Update';
+        send.setAttribute('aria-label', branchFromMessageId == null ? 'Send message' : 'Update message');
+        send.title = '';
+        send.disabled = activeConversationArchived;
+        send.classList.remove('stop-generation');
+      }
+
+      function showPendingAssistant(article, generation) {
+        const bubble = article.querySelector('.bubble');
+        generation.bubble = bubble;
+        if (generation.firstTokenAt) {
+          clearGenerationEta(generation);
+        } else {
+          let estimate = article.querySelector('.generation-eta');
+          if (!estimate) {
+            estimate = document.createElement('div');
+            estimate.className = 'generation-eta';
+            estimate.setAttribute('aria-live', 'off');
+            article.append(estimate);
+          }
+          updateGenerationEstimate(generation);
+          if (!generation.timer) generation.timer = setInterval(() => updateGenerationEstimate(generation), 1000);
+          if (generation.requestId && !generation.progressTimer) {
+            generation.progressTimer = setInterval(() => pollGenerationProgress(generation), 1500);
+            pollGenerationProgress(generation);
+          }
+        }
+        if (generation.text) {
+          bubble.dataset.waiting = 'false';
+          bubble.classList.remove('thinking-indicator');
+          bubble.removeAttribute('role');
+          bubble.removeAttribute('aria-label');
+          bubble.textContent = generation.text;
+          return;
+        }
+        bubble.dataset.waiting = 'true';
+        bubble.classList.add('thinking-indicator');
+        bubble.setAttribute('role', 'status');
+        bubble.setAttribute('aria-label', 'Assistant is preparing a response');
+        const label = document.createElement('span'); label.textContent = 'Thinking';
+        const dots = document.createElement('span'); dots.className = 'thinking-dots'; dots.setAttribute('aria-hidden', 'true');
+        for (let index = 0; index < 3; index++) dots.append(document.createElement('span'));
+        bubble.replaceChildren(label, dots);
+      }
+
+      function clearGenerationEta(generation) {
+        if (generation.timer) clearInterval(generation.timer);
+        if (generation.progressTimer) clearInterval(generation.progressTimer);
+        generation.timer = null;
+        generation.progressTimer = null;
+        generation.bubble?.parentElement?.querySelector('.generation-eta')?.remove();
+      }
+
+      function estimateResponseSeconds(content, attachments) {
+        if (attachments.some((file) => file.media_mime || file.media_data_base64)) return null;
+        const historyChars = [...messages.querySelectorAll('.bubble')].reduce((sum, bubble) => sum + (bubble.innerText || '').length, 0);
+        const attachmentTokens = attachments.reduce((sum, file) => sum + Number(file.estimated_tokens || 0), 0);
+        const estimatedPromptTokens = Math.max(1, Math.ceil((historyChars + content.length) / 3) + attachmentTokens + 700);
+        const retrievalAndSetup = 3;
+        const expectedOutputTokens = 80;
+        return Math.max(2, Math.ceil(estimatedPromptTokens / lastObservedPromptSpeed + expectedOutputTokens / lastObservedOutputSpeed + retrievalAndSetup));
+      }
+
+      async function pollGenerationProgress(generation) {
+        if (!invoke || generation.progressPolling || generation.firstTokenAt || !generation.requestId) return;
+        generation.progressPolling = true;
+        try {
+          const progress = await invoke('generation_progress');
+          if (progress && Number(progress.prompt_tokens) > 0) {
+            const now = Date.now();
+            const processed = Number(progress.prompt_tokens_processed || 0);
+            if (generation.lastProgressAt && processed > generation.lastProcessedTokens) {
+              const seconds = (now - generation.lastProgressAt) / 1000;
+              const measured = (processed - generation.lastProcessedTokens) / Math.max(seconds, 0.25);
+              if (Number.isFinite(measured) && measured > 0) {
+                generation.promptSpeed = generation.promptSpeed
+                  ? generation.promptSpeed * 0.65 + measured * 0.35
+                  : measured;
+              }
+            }
+            generation.lastProgressAt = now;
+            generation.lastProcessedTokens = processed;
+            generation.promptProgress = {
+              total: Number(progress.prompt_tokens),
+              processed,
+              cached: Number(progress.prompt_tokens_cached || 0),
+            };
+          }
+        } catch (_) {
+          // The live progress endpoint is optional; keep showing elapsed time and fallback estimates.
+        } finally {
+          generation.progressPolling = false;
+          updateGenerationEstimate(generation);
+        }
+      }
+
+      function updateGenerationEstimate(generation) {
+        const estimate = generation.bubble?.parentElement?.querySelector('.generation-eta');
+        if (!estimate || !generation.startedAt) return;
+        const elapsed = Math.max(0, Math.floor((Date.now() - generation.startedAt) / 1000));
+        if (generation.promptProgress && !generation.firstTokenAt) {
+          const { total, processed, cached } = generation.promptProgress;
+          const done = Math.min(total, processed + cached);
+          const promptRemaining = Math.max(0, total - done);
+          if (promptRemaining === 0) {
+            estimate.textContent = `Prompt processed · waiting for the first response token · ${elapsed} sec elapsed`;
+            return;
+          }
+          const promptSpeed = Math.max(0.5, generation.promptSpeed || lastObservedPromptSpeed);
+          const remaining = Math.ceil(promptRemaining / promptSpeed + 80 / lastObservedOutputSpeed);
+          estimate.textContent = `Processing prompt · ${done.toLocaleString()} / ${total.toLocaleString()} tokens · about ${remaining} sec remaining · ${elapsed} sec elapsed`;
+          return;
+        }
+        if (generation.firstTokenAt) {
+          const expected = Math.max(20, generation.expectedOutputTokens || 80);
+          const generated = Math.ceil((generation.text || '').length / 4);
+          const remaining = Math.max(0, Math.ceil((expected - generated) / lastObservedOutputSpeed));
+          estimate.textContent = `Generating response · about ${remaining} sec remaining · ${elapsed} sec elapsed`;
+          return;
+        }
+        if (generation.estimatedSeconds == null) {
+          estimate.textContent = `Preparing multimodal prompt · estimate will update from model progress · ${elapsed} sec elapsed`;
+          return;
+        }
+        const remaining = generation.estimatedSeconds - elapsed;
+        estimate.textContent = remaining > 0
+          ? `Estimated response: about ${remaining} sec remaining · ${elapsed} sec elapsed`
+          : `Still processing · ${elapsed} sec elapsed (initial estimate: about ${generation.estimatedSeconds} sec)`;
+      }
+
+      async function refreshCollections() {
+        if (!invoke) return;
+        try {
+          const collections = await invoke('list_collections');
+          availableCollections = collections;
+          if (!collectionsInitialized) {
+            if (activeConversationId == null) selectedCollectionIds = collections.map((collection) => collection.id);
+            collectionsInitialized = true;
+          }
+          if (!collections.some((collection) => collection.id === importCollectionId)) importCollectionId = collections[0]?.id ?? null;
+          renderCollectionPicker();
+          if (currentCollectionPage) {
+            const collection = availableCollections.find((item) => item.id === activeManagedCollectionId);
+            if (collection) await renderCollectionFiles(collection);
+            else { activeManagedCollectionId = null; renderCollectionManager(); }
+          }
+        } catch (_) { showNotice('Collections are unavailable while encrypted storage is offline.', 'warning'); }
+      }
+
+      function showCollectionPage(show) {
+        currentCollectionPage = show;
+        if (show) activeManagedCollectionId = null;
+        document.querySelector('#chat-header').hidden = show;
+        document.querySelector('#conversation').hidden = show;
+        document.querySelector('#composer-wrap').hidden = show;
+        document.querySelector('#collections-page').hidden = !show;
+        if (show) { refreshCollections(); document.querySelector('#collection-name').focus(); }
+      }
+
+      function renderCollectionManager() {
+        document.querySelector('#collections-title').textContent = 'Collections';
+        document.querySelector('#collections-description').textContent = 'Keep project documents separate so each chat can search the right context.';
+        document.querySelector('#collection-detail-back').hidden = true;
+        document.querySelector('#collection-create').hidden = false;
+        document.querySelector('#collection-files-view').hidden = true;
+        const list = document.querySelector('#collection-manager-list');
+        list.hidden = false;
+        list.replaceChildren();
+        if (!availableCollections.length) {
+          const empty = document.createElement('div'); empty.className = 'collection-empty'; empty.textContent = 'No collections yet. Create one to start organizing documents.'; list.append(empty); return;
+        }
+        for (const collection of availableCollections) {
+          const card = document.createElement('article'); card.className = 'collection-card'; card.dataset.collectionId = String(collection.id);
+          const main = document.createElement('button'); main.className = 'collection-card-main collection-open'; main.type = 'button'; main.setAttribute('aria-label', `Open files in ${collection.name}`);
+          const name = document.createElement('span'); name.className = 'collection-card-name'; name.textContent = collection.name;
+          const count = document.createElement('span'); count.className = 'collection-card-count'; count.textContent = `${collection.document_count} document${collection.document_count === 1 ? '' : 's'}`;
+          main.append(name, count); main.addEventListener('click', () => openCollectionFiles(collection));
+          const actions = document.createElement('div'); actions.className = 'collection-card-actions';
+          const add = document.createElement('button'); add.type = 'button'; add.textContent = 'Add files'; add.addEventListener('click', async () => { importCollectionId = collection.id; try { const paths = await invoke('pick_files'); if (paths.length) await importFiles(paths); } catch (error) { showNotice(String(error), 'error'); } });
+          const rename = document.createElement('button'); rename.type = 'button'; rename.textContent = 'Rename'; rename.addEventListener('click', async () => { const value = window.prompt('Rename collection', collection.name); if (value == null) return; try { await invoke('rename_collection', { id: collection.id, name: value }); await refreshCollections(); showNotice('Collection renamed.', 'success'); } catch (error) { showNotice(String(error), 'error'); } });
+          const remove = document.createElement('button'); remove.type = 'button'; remove.textContent = 'Delete'; remove.addEventListener('click', async () => { if (!window.confirm(`Delete “${collection.name}” and remove its documents from that collection?`)) return; try { await invoke('delete_collection', { id: collection.id }); if (selectedCollectionIds.includes(collection.id)) selectedCollectionIds = selectedCollectionIds.filter((id) => id !== collection.id); await refreshCollections(); showNotice('Collection deleted.', 'success'); } catch (error) { showNotice(String(error), 'error'); } });
+          actions.append(add, rename, remove);
+          if (processingCollectionIds.has(collection.id)) {
+            const spinner = document.createElement('span'); spinner.className = 'collection-progress-spinner'; spinner.setAttribute('role', 'img'); spinner.setAttribute('aria-label', `Processing documents in ${collection.name}`); spinner.title = 'Documents are being processed'; card.append(main, spinner, actions);
+          } else card.append(main, actions);
+          list.append(card);
+        }
+      }
+
+      function formatFileSize(bytes) {
+        if (bytes < 1024) return `${bytes} B`;
+        if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+        return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+      }
+
+      async function openCollectionFiles(collection) {
+        activeManagedCollectionId = collection.id;
+        document.querySelector('#collections-title').textContent = collection.name;
+        document.querySelector('#collections-description').textContent = `${collection.document_count} document${collection.document_count === 1 ? '' : 's'} in this collection.`;
+        document.querySelector('#collection-detail-back').hidden = false;
+        document.querySelector('#collection-create').hidden = true;
+        document.querySelector('#collection-manager-list').hidden = true;
+        document.querySelector('#collection-files-view').hidden = false;
+        await renderCollectionFiles(collection);
+      }
+
+      async function renderCollectionFiles(collection) {
+        const wrapper = document.querySelector('#collection-files-view');
+        const list = document.querySelector('#collection-file-list');
+        list.replaceChildren();
+        const documents = await invoke('list_collection_documents', { collectionId: collection.id });
+        document.querySelector('#collections-description').textContent = `${documents.length} document${documents.length === 1 ? '' : 's'} in this collection.`;
+        const selectAll = document.querySelector('#select-all-files');
+        selectAll.checked = false;
+        selectAll.onchange = () => list.querySelectorAll('input[data-document-id]').forEach((input) => { input.checked = selectAll.checked; });
+        document.querySelector('#delete-selected-files').onclick = async () => {
+          const documentIds = [...list.querySelectorAll('input[data-document-id]:checked')].map((input) => Number(input.dataset.documentId));
+          if (!documentIds.length) { showNotice('Select one or more files first.', 'info'); return; }
+          if (!window.confirm(`Remove ${documentIds.length} selected file${documentIds.length === 1 ? '' : 's'} from ${collection.name}? Search vectors are deleted when the file is not used by another collection.`)) return;
+          try {
+            const removed = await invoke('remove_collection_documents', { collectionId: collection.id, documentIds });
+            await refreshCollections();
+            showNotice(`Removed ${removed} file${removed === 1 ? '' : 's'} from ${collection.name}.`, 'success');
+          } catch (error) { showNotice(String(error), 'error'); }
+        };
+        if (!documents.length) {
+          const empty = document.createElement('div'); empty.className = 'collection-empty'; empty.textContent = 'No files in this collection yet.'; list.append(empty); return;
+        }
+        for (const documentInfo of documents) {
+          const row = document.createElement('article'); row.className = 'file-row';
+          const checkbox = document.createElement('input'); checkbox.type = 'checkbox'; checkbox.dataset.documentId = documentInfo.document_id; checkbox.setAttribute('aria-label', `Select ${documentInfo.filename}`);
+          const main = document.createElement('div'); main.className = 'file-row-main';
+          const name = document.createElement('div'); name.className = 'file-row-name'; name.textContent = documentInfo.filename;
+          const view = document.createElement('button'); view.type = 'button'; view.className = 'file-content-button'; view.textContent = 'View content'; view.setAttribute('aria-label', `View extracted content for ${documentInfo.filename}`);
+          view.addEventListener('click', async () => {
+            view.disabled = true; view.textContent = 'Loading…';
+            try {
+              const detail = await invoke('get_collection_document_content', { collectionId: collection.id, documentId: documentInfo.document_id });
+              document.querySelector('#document-content-title').textContent = detail.filename;
+              const body = document.querySelector('#document-content-body');
+              const mediaOnly = detail.has_media_payload && /^(png|jpe?g|bmp|gif|tga|wav|mp3|flac)$/i.test(detail.extension);
+              body.textContent = mediaOnly ? `No text extraction is available for this ${/^wav|mp3|flac$/i.test(detail.extension) ? 'audio' : 'image'} file. Its media payload is stored for cross-modal search.` : (detail.extracted_text || 'No extracted text is available for this file.');
+              document.querySelector('#document-content-dialog').showModal();
+            } catch (error) { showNotice(String(error), 'error'); }
+            finally { view.disabled = false; view.textContent = 'View content'; }
+          });
+          const indexed = documentInfo.chunk_count
+            ? `Indexed ${documentInfo.indexed_chunks} of ${documentInfo.chunk_count} chunks`
+            : 'No text chunks';
+          const status = document.createElement('div'); status.className = 'file-row-path'; status.textContent = `${formatFileSize(documentInfo.byte_size)} · ${indexed}`;
+          main.append(name, view, status);
+          for (const path of documentInfo.paths ?? []) { const pathNode = document.createElement('div'); pathNode.className = 'file-row-path'; pathNode.textContent = path; main.append(pathNode); }
+          row.append(checkbox, main); list.append(row);
+        }
+      }
+
+      function renderCollectionPicker() {
+        const options = document.querySelector('#collection-checkboxes');
+        const summary = document.querySelector('#collection-summary');
+        options.replaceChildren();
+        const selected = selectedCollectionIds.length;
+        summary.textContent = selected === availableCollections.length ? 'All collections⌄' : selected === 0 ? 'No collections⌄' : `${selected} collection${selected === 1 ? '' : 's'}⌄`;
+        summary.textContent = selected === availableCollections.length ? 'All collections' : selected === 0 ? 'No collections' : `${selected} collection${selected === 1 ? '' : 's'}`;
+        for (const collection of availableCollections) {
+          const label = document.createElement('label');
+          const checkbox = document.createElement('input');
+          checkbox.type = 'checkbox';
+          checkbox.checked = selectedCollectionIds.includes(collection.id);
+          checkbox.addEventListener('change', () => {
+            const next = checkbox.checked ? [...selectedCollectionIds, collection.id] : selectedCollectionIds.filter((id) => id !== collection.id);
+            const requestedValue = checkbox.checked;
+            checkbox.checked = !requestedValue;
+            applyCollectionSelection(next).then((accepted) => { if (accepted) renderCollectionPicker(); });
+          });
+          const name = document.createElement('span');
+          name.textContent = collection.name;
+          label.append(checkbox, name);
+          options.append(label);
+        }
+      }
+
+      async function applyCollectionSelection(next) {
+        const chatKey = String(activeConversationRootId ?? activeConversationId);
+        if (activeConversationId != null && !collectionWarningDismissedChats.has(chatKey)) {
+          const dialog = document.querySelector('#collection-change-dialog');
+          document.querySelector('#skip-collection-warning').checked = false;
+          const accepted = await new Promise((resolve) => {
+            const onClose = () => {
+              dialog.removeEventListener('close', onClose);
+              const proceed = dialog.returnValue === 'continue';
+              if (proceed && document.querySelector('#skip-collection-warning').checked) {
+                collectionWarningDismissedChats.add(chatKey);
+                try { localStorage.setItem('collection-warning-dismissed-chats', JSON.stringify([...collectionWarningDismissedChats])); } catch (_) {}
+              }
+              resolve(proceed);
+            };
+            dialog.addEventListener('close', onClose);
+            dialog.showModal();
+          });
+          if (!accepted) return false;
+        }
+        selectedCollectionIds = next;
+        return true;
+      }
+
+      function renderTargetCollectionChips() {
+        const chips = document.querySelector('#collection-target-chips');
+        chips.replaceChildren();
+        if (!targetCollectionSelection.length) {
+          const empty = document.createElement('span'); empty.className = 'collection-target-empty'; empty.textContent = 'Selected collections will appear here.'; chips.append(empty);
+        }
+        for (const id of targetCollectionSelection) {
+          const collection = availableCollections.find((item) => item.id === id);
+          if (!collection) continue;
+          const chip = document.createElement('span'); chip.className = 'collection-target-chip';
+          if (targetCollectionBackspaceArmedId === id) chip.dataset.removeArmed = 'true';
+          const name = document.createElement('span'); name.textContent = collection.name;
+          const remove = document.createElement('button'); remove.type = 'button'; remove.textContent = '×'; remove.setAttribute('aria-label', `Remove ${collection.name}`);
+          remove.addEventListener('click', () => { targetCollectionSelection = targetCollectionSelection.filter((item) => item !== id); targetCollectionBackspaceArmedId = null; renderTargetCollectionChips(); renderTargetCollectionOptions(); });
+          chip.append(name, remove); chips.append(chip);
+        }
+        document.querySelector('#collection-target-confirm').disabled = targetCollectionSelection.length === 0;
+      }
+
+      function renderTargetCollectionOptions() {
+        const search = document.querySelector('#collection-target-search');
+        const options = document.querySelector('#collection-target-options');
+        options.replaceChildren();
+        const query = search.value.trim().toLocaleLowerCase();
+        const matches = availableCollections
+          .filter((collection) => !query || collection.name.toLocaleLowerCase().includes(query))
+          .sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }));
+        if (!matches.length) {
+          search.removeAttribute('aria-activedescendant');
+          const empty = document.createElement('div'); empty.className = 'collection-target-option-empty'; empty.textContent = 'No matching collections.'; options.append(empty); return;
+        }
+        targetCollectionActiveIndex = Math.max(0, Math.min(targetCollectionActiveIndex, matches.length - 1));
+        for (const [index, collection] of matches.entries()) {
+          const option = document.createElement('button'); option.type = 'button'; option.className = 'collection-target-option'; option.setAttribute('role', 'option');
+          option.id = `collection-target-option-${index}`;
+          option.setAttribute('aria-selected', String(index === targetCollectionActiveIndex));
+          const selected = targetCollectionSelection.includes(collection.id);
+          option.textContent = selected ? `${collection.name} · Added` : collection.name;
+          option.addEventListener('click', () => addTargetCollection(collection.id));
+          options.append(option);
+        }
+        search.setAttribute('aria-activedescendant', `collection-target-option-${targetCollectionActiveIndex}`);
+      }
+
+      function addTargetCollection(id) {
+        if (targetCollectionSelection.includes(id)) return;
+        targetCollectionSelection.push(id);
+        targetCollectionBackspaceArmedId = null;
+        document.querySelector('#collection-target-search').value = '';
+        renderTargetCollectionChips();
+        renderTargetCollectionOptions();
+        document.querySelector('#collection-target-search').focus();
+      }
+
+      function chooseCollectionsForAttachment(label, detail = '') {
+        if (!availableCollections.length) {
+          showNotice('Create a collection before adding this document to the library.', 'warning');
+          showCollectionPage(true);
+          return Promise.resolve(null);
+        }
+        const dialog = document.querySelector('#collection-target-dialog');
+        const search = document.querySelector('#collection-target-search');
+        search.value = '';
+        targetCollectionSelection = [];
+        targetCollectionBackspaceArmedId = null;
+        targetCollectionActiveIndex = 0;
+        document.querySelector('#collection-target-title').textContent = `Add ${label} to collections`;
+        document.querySelector('#collection-target-description').textContent = detail || 'Choose one or more collections. The document will be indexed for future chats in those spaces.';
+        renderTargetCollectionChips();
+        renderTargetCollectionOptions();
+        dialog.showModal();
+        search.focus();
+        return new Promise((resolve) => {
+          let result = null;
+          const finish = (value) => { result = value; dialog.close(); };
+          const onClose = () => resolve(result);
+          dialog.addEventListener('close', onClose, { once: true });
+          search.oninput = () => { targetCollectionBackspaceArmedId = null; targetCollectionActiveIndex = 0; renderTargetCollectionOptions(); };
+          search.onkeydown = (event) => {
+            if (event.key === 'Backspace' && !search.value && targetCollectionSelection.length) {
+              event.preventDefault();
+              const lastId = targetCollectionSelection.at(-1);
+              if (targetCollectionBackspaceArmedId === lastId) {
+                targetCollectionSelection.pop(); targetCollectionBackspaceArmedId = null;
+                renderTargetCollectionChips(); renderTargetCollectionOptions();
+              } else { targetCollectionBackspaceArmedId = lastId; renderTargetCollectionChips(); }
+              return;
+            }
+            if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+              const count = document.querySelectorAll('#collection-target-options .collection-target-option').length;
+              if (count) {
+                event.preventDefault();
+                targetCollectionActiveIndex = (targetCollectionActiveIndex + (event.key === 'ArrowDown' ? 1 : -1) + count) % count;
+                renderTargetCollectionOptions();
+                search.setAttribute('aria-activedescendant', `collection-target-option-${targetCollectionActiveIndex}`);
+              }
+              return;
+            }
+            if (event.key === 'Enter') {
+              event.preventDefault();
+              const query = search.value.trim().toLocaleLowerCase();
+              const candidates = availableCollections.filter((collection) => !targetCollectionSelection.includes(collection.id) && (!query || collection.name.toLocaleLowerCase().includes(query)));
+              const match = candidates.find((collection) => collection.name.toLocaleLowerCase() === query)
+                ?? candidates.find((collection) => collection.name.toLocaleLowerCase().startsWith(query))
+                ?? candidates[0];
+              if (match) addTargetCollection(match.id);
+            }
+          };
+          document.querySelector('#collection-target-cancel').onclick = () => finish(null);
+          document.querySelector('#collection-target-confirm').onclick = () => finish([...targetCollectionSelection]);
+          dialog.addEventListener('cancel', (event) => { event.preventDefault(); finish(null); }, { once: true });
+        });
+      }
+
+      async function importFiles(paths) {
+        if (!importCollectionId) { showNotice('Create or select a collection before importing files.', 'warning'); return; }
+        if (processingCollectionIds.has(importCollectionId)) { showNotice('This collection is already processing an import. Wait for it to finish.', 'info'); return; }
+        beginCollectionImport(paths, importCollectionId);
+        try {
+          const results = await invoke('import_documents', { paths, collectionId: importCollectionId });
+          applyImportResults(results);
+          const succeeded = results.filter((result) => !result.error).length;
+          const reused = results.filter((result) => result.reused_existing).length;
+          const failures = results.filter((result) => result.error);
+          const pending = results.find((result) => result.indexing_error && !result.error);
+          await refreshCollections();
+          const text = `${succeeded} file${succeeded === 1 ? '' : 's'} indexed${reused ? ` · ${reused} reused by content hash` : ''}${pending ? ` · Search indexing is pending: ${pending.indexing_error} Drop a file again to retry.` : ''}${failures.length ? ` · ${failures.length} failed: ${failures[0].filename} — ${failures[0].error}` : ''}`;
+          settleCollectionImport();
+          showNotice(text, failures.length || pending ? 'warning' : 'success');
+        } catch (error) {
+          for (const file of collectionImportFiles) if (!['indexed', 'failed'].includes(file.status)) { file.status = 'failed'; file.error = String(error); }
+          renderCollectionImportFiles();
+          settleCollectionImport();
+          handleCollectionImportProgress({ collectionId: importCollectionId, phase: 'error', message: `Import failed: ${String(error)}`, completedFiles: 0, totalFiles: paths.length, completedChunks: 0, totalChunks: 0 });
+          showNotice(String(error), 'error');
+        }
+      }
+
+      function beginCollectionImport(paths, collectionId) {
+        clearTimeout(collectionProgressHideTimer);
+        collectionImportCollectionId = Number(collectionId);
+        collectionImportFiles = paths.map((path, fileIndex) => ({
+          fileIndex,
+          filename: path.split(/[\\/]/).pop() || 'Document',
+          status: 'queued',
+          error: '',
+          retryToken: null,
+          retryUsed: false,
+        }));
+        const status = document.querySelector('#collection-import-status');
+        status.hidden = false;
+        status.dataset.phase = 'extracting';
+        document.querySelector('#import-status-message').textContent = 'Preparing documents';
+        document.querySelector('#import-status-close').hidden = true;
+        document.querySelector('#import-file-list').replaceChildren();
+        renderCollectionImportFiles();
+      }
+
+      function renderCollectionImportFiles() {
+        const list = document.querySelector('#import-file-list');
+        list.replaceChildren();
+        const labels = {
+          queued: 'Waiting', processing: 'Reading file', extracted: 'Extracted · waiting for indexing',
+          embedding: 'Creating embeddings', indexed: 'Indexed and saved', failed: 'Failed', retrying: 'Retrying once…',
+        };
+        for (const file of collectionImportFiles) {
+          const row = document.createElement('div'); row.className = 'import-file-row';
+          const name = document.createElement('span'); name.className = 'import-file-name'; name.textContent = file.filename; name.title = file.filename;
+          const state = document.createElement('span'); state.className = 'import-file-state'; state.textContent = labels[file.status] ?? file.status;
+          row.append(name, state);
+          if (file.error) { const error = document.createElement('div'); error.className = 'import-file-error'; error.textContent = file.retryUsed ? `Retry failed: ${file.error}` : file.error; row.append(error); }
+          if (file.status === 'failed' && file.retryToken && !file.retryUsed) {
+            const retry = document.createElement('button'); retry.className = 'import-file-retry'; retry.type = 'button'; retry.textContent = 'Retry once';
+            retry.setAttribute('aria-label', `Retry ${file.filename} once`);
+            retry.disabled = collectionImportFiles.some((candidate) => candidate.status === 'retrying');
+            retry.addEventListener('click', () => retryCollectionFile(file.fileIndex));
+            row.append(retry);
+          } else if (file.status === 'failed' && file.retryUsed) {
+            const used = document.createElement('span'); used.className = 'import-file-retry'; used.textContent = 'Retry used'; row.append(used);
+          }
+          list.append(row);
+        }
+      }
+
+      function applyImportResults(results, retryIndex = null) {
+        for (let index = 0; index < results.length; index++) {
+          const result = results[index];
+          const fileIndex = retryIndex ?? Number(result.file_index ?? index);
+          const file = collectionImportFiles[fileIndex];
+          if (!file) continue;
+          file.retryToken = result.retry_token ?? null;
+          if (result.error || result.indexing_error) {
+            file.status = 'failed';
+            file.error = result.error || result.indexing_error;
+          } else {
+            file.status = 'indexed';
+            file.error = '';
+            file.retryToken = null;
+          }
+        }
+        renderCollectionImportFiles();
+      }
+
+      function settleCollectionImport() {
+        const active = collectionImportFiles.some((file) => ['queued', 'processing', 'extracted', 'embedding', 'retrying'].includes(file.status));
+        const close = document.querySelector('#import-status-close');
+        close.hidden = active;
+        if (active) { clearTimeout(collectionProgressHideTimer); return; }
+        const failures = collectionImportFiles.filter((file) => file.status === 'failed').length;
+        const successes = collectionImportFiles.filter((file) => file.status === 'indexed').length;
+        if (collectionImportFiles.length && failures === 0 && successes === collectionImportFiles.length) {
+          document.querySelector('#collection-import-status').dataset.phase = 'complete';
+          document.querySelector('#import-status-message').textContent = 'All files indexed successfully';
+          clearTimeout(collectionProgressHideTimer);
+          collectionProgressHideTimer = setTimeout(() => { document.querySelector('#collection-import-status').hidden = true; }, 8000);
+        } else {
+          clearTimeout(collectionProgressHideTimer);
+          document.querySelector('#collection-import-status').dataset.phase = failures ? 'error' : 'extracting';
+          document.querySelector('#import-status-message').textContent = `${successes} indexed · ${failures} failed`;
+        }
+      }
+
+      async function retryCollectionFile(fileIndex) {
+        const file = collectionImportFiles[fileIndex];
+        if (!file?.retryToken || file.retryUsed || processingCollectionIds.has(collectionImportCollectionId)) return;
+        clearTimeout(collectionProgressHideTimer);
+        file.retryUsed = true;
+        file.status = 'retrying';
+        file.error = '';
+        activeRetryFileIndex = fileIndex;
+        processingCollectionIds.add(collectionImportCollectionId);
+        document.querySelector('#collection-import-status').dataset.phase = 'indexing';
+        document.querySelector('#import-status-message').textContent = `Retrying ${file.filename}`;
+        renderCollectionImportFiles();
+        settleCollectionImport();
+        try {
+          const result = await invoke('retry_failed_import', { retryToken: file.retryToken });
+          file.retryToken = null;
+          applyImportResults([result], fileIndex);
+          await refreshCollections();
+          showNotice(result.error ? `Retry failed for ${file.filename}: ${result.error}` : `${file.filename} indexed successfully.`, result.error ? 'warning' : 'success');
+        } catch (error) {
+          file.retryToken = null;
+          file.status = 'failed';
+          file.error = String(error);
+          renderCollectionImportFiles();
+          showNotice(`Retry failed for ${file.filename}: ${String(error)}`, 'warning');
+        } finally {
+          activeRetryFileIndex = null;
+          processingCollectionIds.delete(collectionImportCollectionId);
+          document.querySelector('#sidebar-import-spinner').hidden = processingCollectionIds.size === 0;
+          settleCollectionImport();
+        }
+      }
+
+      function formatEta(seconds) {
+        if (!Number.isFinite(seconds)) return 'Estimating…';
+        if (seconds < 60) return `about ${Math.max(1, Math.round(seconds))} sec`;
+        const minutes = Math.ceil(seconds / 60);
+        return `about ${minutes} min`;
+      }
+
+      function handleCollectionImportProgress(progress) {
+        const id = Number(progress?.collectionId);
+        if (!Number.isFinite(id)) return;
+        if (progress.fileStatus && currentCollectionPage && id === collectionImportCollectionId) {
+          let fileIndex = Number(progress.fileIndex);
+          if (activeRetryFileIndex != null && fileIndex === 0) fileIndex = activeRetryFileIndex;
+          const file = collectionImportFiles[fileIndex];
+          if (file) {
+            file.filename = progress.filename || file.filename;
+            file.status = progress.fileStatus;
+            file.error = progress.fileError || '';
+            renderCollectionImportFiles();
+            settleCollectionImport();
+          }
+          if (!progress.phase) return;
+        }
+        if (progress.fileStatus && !progress.phase) return;
+        const phase = progress.phase ?? 'extracting';
+        const active = phase === 'extracting' || phase === 'indexing';
+        if (active) processingCollectionIds.add(id); else processingCollectionIds.delete(id);
+        document.querySelector('#sidebar-import-spinner').hidden = processingCollectionIds.size === 0;
+        clearTimeout(collectionProgressHideTimer);
+        const card = document.querySelector(`.collection-card[data-collection-id="${id}"]`);
+        if (card) {
+          const current = card.querySelector('.collection-progress-spinner');
+          if (active && !current) {
+            const spinner = document.createElement('span'); spinner.className = 'collection-progress-spinner'; spinner.setAttribute('role', 'img'); spinner.setAttribute('aria-label', 'Documents are being processed'); spinner.title = 'Documents are being processed';
+            card.insertBefore(spinner, card.querySelector('.collection-card-actions'));
+          } else if (!active && current) current.remove();
+        }
+        const status = document.querySelector('#collection-import-status');
+        status.hidden = false;
+        status.dataset.phase = phase;
+        document.querySelector('#import-status-message').textContent = progress.message ?? 'Processing documents';
+        const completedFiles = Number(progress.completedFiles ?? 0);
+        const totalFiles = Number(progress.totalFiles ?? 0);
+        const completedChunks = Number(progress.completedChunks ?? 0);
+        const totalChunks = Number(progress.totalChunks ?? 0);
+        const detail = [];
+        if (progress.filename) detail.push(progress.filename);
+        if (phase === 'indexing' || totalChunks > 0) detail.push(`${completedChunks.toLocaleString()} / ${totalChunks.toLocaleString()} chunks`);
+        else if (totalFiles > 0) detail.push(`${completedFiles} / ${totalFiles} files extracted`);
+        if (active) detail.push(`ETA ${progress.etaSeconds == null ? 'estimating…' : formatEta(Number(progress.etaSeconds))}`);
+        const collectionName = availableCollections.find((collection) => collection.id === id)?.name;
+        if (collectionName) detail.unshift(collectionName);
+        document.querySelector('#import-status-detail').textContent = detail.join(' · ');
+        const percent = phase === 'complete' ? 100 : totalChunks > 0 ? 25 + completedChunks / totalChunks * 75 : totalFiles > 0 ? completedFiles / totalFiles * 25 : 0;
+        document.querySelector('#import-progress-fill').style.transform = `scaleX(${Math.max(0, Math.min(100, percent)) / 100})`;
+        if (phase === 'complete' || phase === 'error') settleCollectionImport();
+      }
+
+      async function attachChatFiles(paths) {
+        const remaining = 10 - pendingAttachments.length;
+        if (paths.length > remaining) { showNotice('A chat can hold up to 10 attachments. Remove a file or send the current message first.', 'warning'); return; }
+        const startIndex = pendingAttachments.length;
+        pendingAttachments.push(...paths.map((path) => ({ path, filename: path.split(/[\\/]/).pop() || 'Attached file', processing: true, estimated_tokens: 0 })));
+        renderPendingAttachments();
+        try {
+          const prepared = await invoke('prepare_chat_attachments', { paths });
+          for (let index = 0; index < prepared.length; index++) {
+            const file = prepared[index];
+            const pendingIndex = pendingAttachments.findIndex((item) => item.path === paths[index] && item.processing);
+            if (pendingIndex < 0) continue;
+            const hasPayload = Boolean(file.media_data_base64);
+            if (file.error || file.over_limit || (!file.content && !hasPayload)) {
+              pendingAttachments.splice(pendingIndex, 1);
+              if (file.over_limit) {
+                const ids = await chooseCollectionsForAttachment(file.filename, `This file is about ${file.estimated_tokens.toLocaleString()} tokens, above the 5,000-token chat attachment limit. Select where it should be indexed for future retrieval.`);
+                if (ids?.length) {
+                  try { await addFilesToSelectedCollections([paths[index]], ids, `“${file.filename}”`); }
+                  catch (error) { showNotice(String(error), 'error'); }
+                }
+              } else showNotice(`${file.filename}: ${file.error || 'Could not prepare this attachment.'}`, 'warning');
+              continue;
+            }
+            pendingAttachments[pendingIndex] = { path: paths[index], filename: file.filename, byte_size: file.byte_size, estimated_tokens: file.estimated_tokens, content: file.content ?? '', media_mime: file.media_mime, media_format: file.media_format, media_data_base64: file.media_data_base64, processing: false };
+          }
+        } catch (error) {
+          pendingAttachments.splice(startIndex, paths.length);
+          showNotice(String(error), 'error');
+        }
+        renderPendingAttachments();
+        const tokenEstimate = pendingAttachments.reduce((sum, file) => sum + (file.estimated_tokens || 0), 0);
+        if (tokenEstimate > 5000) {
+          const ids = await chooseCollectionsForAttachment('these attachments', `Together these files are about ${tokenEstimate.toLocaleString()} tokens, above the 5,000-token chat limit. Select collections to index them for future retrieval.`);
+          if (ids?.length) {
+            const pathsToImport = pendingAttachments.map((file) => file.path);
+            pendingAttachments = []; renderPendingAttachments();
+            try { await addFilesToSelectedCollections(pathsToImport, ids, 'the selected attachments'); }
+            catch (error) { showNotice(String(error), 'error'); }
+          }
+        }
+      }
+
+      function renderPendingAttachments() {
+        attachmentStrip.replaceChildren();
+        attachmentStrip.hidden = pendingAttachments.length === 0;
+        for (const [index, attachment] of pendingAttachments.entries()) {
+          const chip = document.createElement('span'); chip.className = 'attachment-chip';
+          if (attachment.processing) { const spinner = document.createElement('span'); spinner.className = 'attachment-spinner'; spinner.setAttribute('aria-label', 'Processing'); chip.append(spinner); }
+          const name = document.createElement('span'); name.className = 'attachment-name'; name.textContent = attachment.filename; chip.append(name);
+          const state = document.createElement('span'); state.className = 'attachment-state'; state.textContent = attachment.processing ? 'Preparing…' : attachment.media_mime?.startsWith('image/') ? 'Image' : attachment.media_mime?.startsWith('audio/') ? 'Audio' : attachment.error ? 'Unavailable' : `~${attachment.estimated_tokens.toLocaleString()} tokens`; chip.append(state);
+          const remove = document.createElement('button'); remove.type = 'button'; remove.className = 'attachment-remove'; remove.textContent = '×'; remove.setAttribute('aria-label', `Remove ${attachment.filename}`); remove.disabled = attachment.processing;
+          remove.addEventListener('click', () => { pendingAttachments.splice(index, 1); renderPendingAttachments(); }); chip.append(remove); attachmentStrip.append(chip);
+        }
+      }
+
+      function appendMessageAttachments(article, attachments = [], allowCollectionImport = false) {
+        if (!attachments.length) return;
+        const row = document.createElement('div'); row.className = 'message-attachments';
+        for (const attachment of attachments) {
+          if (attachment.media_mime?.startsWith('image/') && attachment.media_data_base64) {
+            const image = document.createElement('img'); image.className = 'message-media-image'; image.src = `data:${attachment.media_mime};base64,${attachment.media_data_base64}`; image.alt = attachment.filename; image.loading = 'lazy'; row.append(image);
+          } else if (attachment.media_mime?.startsWith('audio/') && attachment.media_data_base64) {
+            const audio = document.createElement('audio'); audio.className = 'message-media-audio'; audio.controls = true; audio.preload = 'none'; audio.src = `data:${attachment.media_mime};base64,${attachment.media_data_base64}`; audio.setAttribute('aria-label', attachment.filename); row.append(audio);
+          }
+          const chip = document.createElement('span'); chip.className = 'attachment-chip';
+          const name = document.createElement('span'); name.className = 'attachment-name'; name.textContent = attachment.filename; name.title = `${attachment.filename} · ~${attachment.estimated_tokens.toLocaleString()} tokens`;
+          chip.append(name);
+          if (allowCollectionImport && attachment.path) {
+            const add = document.createElement('button'); add.type = 'button'; add.className = 'small-button'; add.textContent = 'Add to collections';
+            add.addEventListener('click', async () => {
+              const ids = await chooseCollectionsForAttachment(attachment.filename);
+              if (!ids?.length) return;
+              add.disabled = true;
+              try {
+                await addFilesToSelectedCollections([attachment.path], ids, attachment.filename);
+                add.remove();
+              } catch (error) { add.disabled = false; showNotice(String(error), 'error'); }
+            });
+            chip.append(add);
+          }
+          row.append(chip);
+        }
+        article.append(row);
+      }
+
+      async function addFilesToSelectedCollections(paths, collectionIds, label) {
+        try {
+          const results = await invoke('import_chat_attachments_to_collections', { paths, collectionIds });
+          const failed = results.find((result) => result.error || result.indexing_error);
+          if (failed) throw new Error(failed.error || failed.indexing_error);
+          await refreshCollections();
+          const names = availableCollections.filter((collection) => collectionIds.includes(collection.id)).map((collection) => collection.name).join(', ');
+          showNotice(`Added ${label} to ${names}.`, 'success');
+        } catch (error) {
+          for (const collectionId of collectionIds) handleCollectionImportProgress({ collectionId, phase: 'error', message: `Import failed: ${String(error)}`, completedFiles: 0, totalFiles: paths.length, completedChunks: 0, totalChunks: 0 });
+          throw error;
+        }
+      }
+
+      function actionButton(symbol, label, action) {
+        const button = document.createElement('button');
+        const paths = {
+          '⧉': ['rect', 'path'], '✎': ['edit'], '⌫': ['trash'], '↻': ['rotate'],
+        };
+        const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        svg.setAttribute('viewBox', '0 0 24 24'); svg.setAttribute('width', '16'); svg.setAttribute('height', '16'); svg.setAttribute('fill', 'none'); svg.setAttribute('stroke', 'currentColor'); svg.setAttribute('stroke-width', '1.7'); svg.setAttribute('stroke-linecap', 'round'); svg.setAttribute('stroke-linejoin', 'round'); svg.setAttribute('aria-hidden', 'true');
+        const shapes = paths[symbol] ?? [];
+        if (shapes.includes('rect')) { const node = document.createElementNS(svg.namespaceURI, 'rect'); node.setAttribute('x', '8'); node.setAttribute('y', '8'); node.setAttribute('width', '13'); node.setAttribute('height', '13'); node.setAttribute('rx', '2'); svg.append(node); }
+        const path = document.createElementNS(svg.namespaceURI, 'path');
+        path.setAttribute('d', shapes.includes('path') ? 'M16 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h3' : shapes.includes('edit') ? 'M12 20h9 M16.5 3.5a2.12 2.12 0 0 1 3 3L8 18l-4 1 1-4Z' : shapes.includes('trash') ? 'M3 6h18 M8 6V4h8v2 M19 6l-1 14H6L5 6 M10 11v5 M14 11v5' : 'M20 7v5h-5 M4 17v-5h5 M5 9a7 7 0 0 1 12-2l3 5 M19 15a7 7 0 0 1-12 2l-3-5');
+        svg.append(path); button.append(svg);
+        button.type = 'button'; button.title = label; button.setAttribute('aria-label', label);
+        button.addEventListener('click', action);
+        return button;
+      }
+
+      async function copyMessage(text) {
+        try { await navigator.clipboard.writeText(text); showNotice('Copied to clipboard.', 'success'); }
+        catch (_) { showNotice('Clipboard access was unavailable.', 'warning'); }
+      }
+
+      async function copyAssistantResponse(article) {
+        const answer = article.querySelector('.bubble')?.innerText ?? '';
+        const sources = article.querySelector('.sources');
+        if (!sources?.open) { await copyMessage(answer); return; }
+        const entries = [...sources.querySelectorAll('.source-item')].map((item) => item.dataset.copyText || item.innerText.trim()).filter(Boolean);
+        await copyMessage(entries.length ? `${answer}\n\nSources\n${entries.join('\n\n')}` : answer);
+      }
+
+      function beginEditTurn(message, article) {
+        branchFromMessageId = message.id;
+        branchEditMessageElement = article;
+        editingOriginalCollectionIds = [...selectedCollectionIds];
+        selectedCollectionIds = [...(message.collection_ids ?? availableCollections.map((collection) => collection.id))];
+        pendingAttachments = (message.attachments ?? []).map((attachment) => ({ ...attachment, processing: false }));
+        renderPendingAttachments(); renderCollectionPicker();
+        input.value = message.content;
+        input.dispatchEvent(new Event('input'));
+        send.textContent = 'Update'; document.querySelector('#cancel-edit').hidden = false; input.focus();
+      }
+
+      function appendUserActions(article, message) {
+        const actions = document.createElement('div'); actions.className = 'message-actions';
+        actions.append(actionButton('⧉', 'Copy message', () => copyMessage(message.content)));
+        actions.append(actionButton('✎', 'Edit message', () => beginEditTurn(message, article)));
+        actions.append(actionButton('⌫', 'Delete turn', async () => {
+          if (!activeConversationId) return;
+          try {
+            const id = await invoke('remove_turn_from_timeline', { conversationId: activeConversationId, anchorMessageId: message.id });
+            activeConversationId = id; await openConversation(id);
+            showNotice('This turn and all later messages were deleted from this timeline.', 'success');
+          } catch (error) { showNotice(String(error), 'error'); }
+        }));
+        article.append(actions);
+      }
+
+      function appendAssistantActions(article, messageId, userTurn) {
+        const actions = document.createElement('div'); actions.className = 'message-actions';
+        actions.append(actionButton('⧉', 'Copy response', () => copyAssistantResponse(article)));
+        if (userTurn) actions.append(actionButton('↻', 'Regenerate response', () => beginEditTurn(userTurn, userTurn.article)));
+        actions.append(actionButton('⌫', 'Remove response', async () => {
+          if (!activeConversationId) return;
+          try {
+            const id = await invoke('remove_turn_from_timeline', { conversationId: activeConversationId, anchorMessageId: messageId });
+            activeConversationId = id; await openConversation(id);
+            showNotice('This response and all later messages were deleted from this timeline.', 'success');
+          } catch (error) { showNotice(String(error), 'error'); }
+        }));
+        article.append(actions);
+      }
+
+      function addMessage(role, text, meta = '', sources = [], messageId = null, messageCollections = null, attachments = [], previousUser = null) {
+        welcome.hidden = true;
+        const article = document.createElement('article');
+        article.className = `message ${role}`;
+        article.chatAttachments = attachments;
+        const bubble = document.createElement('div');
+        bubble.className = 'bubble';
+        if (role === 'assistant' && text !== 'Thinking…') renderMarkdown(bubble, text); else bubble.textContent = role === 'user' && !text && attachments.length ? `Attached: ${attachments.map((attachment) => attachment.filename).join(', ')}` : text;
+        article.append(bubble);
+        if (role === 'user') appendMessageAttachments(article, attachments);
+        if (meta && (!Array.isArray(meta) || meta.length)) {
+          const detail = document.createElement('div');
+          detail.className = 'meta';
+          if (Array.isArray(meta)) renderMetrics(detail, meta); else detail.textContent = meta;
+          article.append(detail);
+        }
+        appendSources(article, sources, role === 'assistant' ? (previousUser?.attachments ?? []) : []);
+        if (role === 'user' && messageId != null) appendUserActions(article, { id: messageId, content: text, collection_ids: messageCollections, attachments, article });
+        if (role === 'assistant' && messageId != null) appendAssistantActions(article, messageId, previousUser);
+        messages.append(article);
+        conversation.scrollTop = conversation.scrollHeight;
+        return article;
+      }
+
+      function appendInlineMarkdown(parent, text) {
+        const token = /(\[[^\]]+\]\([^)]+\)|\*\*[^*]+\*\*|__[^_]+__|`[^`]+`|\*[^*]+\*)/g;
+        let offset = 0;
+        for (const match of text.matchAll(token)) {
+          if (match.index > offset) parent.append(document.createTextNode(text.slice(offset, match.index)));
+          const value = match[0];
+          if (value.startsWith('[')) {
+            const parsed = value.match(/^\[([^\]]+)\]\(([^)]+)\)$/);
+            let url;
+            try { url = new URL(parsed[2], window.location.href); } catch (_) { url = null; }
+            if (url && ['https:', 'http:', 'mailto:'].includes(url.protocol)) {
+              const link = document.createElement('a'); link.textContent = parsed[1]; link.href = url.href; link.target = '_blank'; link.rel = 'noopener noreferrer'; parent.append(link);
+            } else parent.append(document.createTextNode(value));
+          } else {
+            const tag = value.startsWith('`') ? 'code' : (value.startsWith('**') || value.startsWith('__')) ? 'strong' : 'em';
+            const node = document.createElement(tag);
+            const trim = tag === 'strong' ? 2 : 1;
+            node.textContent = value.slice(trim, -trim); parent.append(node);
+          }
+          offset = match.index + value.length;
+        }
+        if (offset < text.length) parent.append(document.createTextNode(text.slice(offset)));
+      }
+
+      function renderMarkdown(container, source) {
+        container.replaceChildren(); container.classList.add('markdown');
+        const lines = String(source).replace(/\r\n?/g, '\n').split('\n');
+        let i = 0;
+        while (i < lines.length) {
+          const line = lines[i];
+          if (!line.trim()) { i++; continue; }
+          if (/^```/.test(line)) {
+            i++; const code = [];
+            while (i < lines.length && !/^```/.test(lines[i])) code.push(lines[i++]);
+            if (i < lines.length) i++;
+            const pre = document.createElement('pre'); const node = document.createElement('code'); node.textContent = code.join('\n'); pre.append(node); container.append(pre); continue;
+          }
+          const heading = line.match(/^(#{1,3})\s+(.+)$/);
+          if (heading) { const node = document.createElement(`h${heading[1].length}`); appendInlineMarkdown(node, heading[2]); container.append(node); i++; continue; }
+          if (/^\s*(---+|\*\*\*+)\s*$/.test(line)) { container.append(document.createElement('hr')); i++; continue; }
+          if (/^>\s?/.test(line)) { const quote = document.createElement('blockquote'); while (i < lines.length && /^>\s?/.test(lines[i])) { const p = document.createElement('p'); appendInlineMarkdown(p, lines[i++].replace(/^>\s?/, '')); quote.append(p); } container.append(quote); continue; }
+          const listMatch = line.match(/^\s*([-*+]\s+|\d+[.)]\s+)/);
+          if (listMatch) { const ordered = /^\d/.test(listMatch[1]); const list = document.createElement(ordered ? 'ol' : 'ul'); while (i < lines.length) { const item = lines[i].match(/^\s*([-*+]\s+|\d+[.)]\s+)(.*)$/); if (!item || /^\d/.test(item[1]) !== ordered) break; const li = document.createElement('li'); appendInlineMarkdown(li, item[2]); list.append(li); i++; } container.append(list); continue; }
+          const paragraph = [];
+          while (i < lines.length && lines[i].trim() && !/^(#{1,3}\s|```|>\s?|\s*([-*+]\s+|\d+[.)]\s+)|\s*(---+|\*\*\*+)\s*$)/.test(lines[i])) paragraph.push(lines[i++]);
+          if (!paragraph.length) { paragraph.push(lines[i++]); }
+          const p = document.createElement('p'); appendInlineMarkdown(p, paragraph.join('\n')); container.append(p);
+        }
+      }
+
+      function renderMetrics(container, items) {
+        for (const item of items) {
+          const metric = document.createElement('span'); metric.className = 'metric'; metric.dataset.tooltip = item.description; metric.tabIndex = 0;
+          metric.setAttribute('aria-label', `${item.description}: ${item.value}`);
+          const value = document.createElement('strong'); value.textContent = item.value; metric.append(value); container.append(metric);
+        }
+      }
+
+      function appendSources(article, sources, mediaAttachments = []) {
+        const mediaSources = mediaAttachments.filter((attachment) => attachment.media_mime?.startsWith('image/') || attachment.media_mime?.startsWith('audio/'));
+        if (!sources?.length && !mediaSources.length) return;
+        const details = document.createElement('details');
+        details.className = 'sources';
+        const summary = document.createElement('summary');
+        summary.textContent = `Sources · ${(sources?.length ?? 0) + mediaSources.length}`;
+        details.append(summary);
+        for (const [index, source] of (sources ?? []).entries()) {
+          const excerpt = document.createElement('div');
+          excerpt.className = 'source-item';
+          excerpt.textContent = `[Source ${index + 1}] ${source.filename}\n${source.excerpt}`;
+          excerpt.dataset.copyText = `[Source ${index + 1}] ${source.filename}\n${source.excerpt}`;
+          details.append(excerpt);
+        }
+        for (const attachment of mediaSources) {
+          const source = document.createElement('div'); source.className = 'source-item';
+          source.dataset.copyText = `[Attachment] ${attachment.filename}`;
+          const label = document.createElement('div'); label.textContent = `[Attachment] ${attachment.filename}`; source.append(label);
+          if (attachment.media_mime.startsWith('image/') && attachment.media_data_base64) {
+            const image = document.createElement('img'); image.className = 'message-media-image'; image.src = `data:${attachment.media_mime};base64,${attachment.media_data_base64}`; image.alt = attachment.filename; image.loading = 'lazy'; source.append(image);
+          } else if (attachment.media_mime.startsWith('audio/') && attachment.media_data_base64) {
+            const audio = document.createElement('audio'); audio.className = 'message-media-audio'; audio.controls = true; audio.preload = 'none'; audio.src = `data:${attachment.media_mime};base64,${attachment.media_data_base64}`; audio.setAttribute('aria-label', attachment.filename); source.append(audio);
+          }
+          details.append(source);
+        }
+        article.append(details);
+      }
+
+      function userMessageMeta(item) {
+        const values = [];
+        if (item.input_tokens != null) values.push({ value: `${item.input_tokens} tokens`, description: 'Input tokens processed for this turn' });
+        const promptTime = item.prompt_elapsed_ms ?? item.time_to_first_token_ms;
+        if (promptTime != null) values.push({ value: `${(promptTime / 1000).toFixed(1)}s`, description: 'Time until the complete prompt was processed and the first response token arrived' });
+        if (item.input_tokens_per_second != null) values.push({ value: `${item.input_tokens_per_second.toFixed(1)} tok/s`, description: 'Prompt processing speed' });
+        return values;
+      }
+
+      function assistantMessageMeta(item) {
+        const values = [];
+        if (item.model) values.push({ value: item.model, description: 'Chat model used for this response' });
+        if (item.output_tokens != null) values.push({ value: `${item.output_tokens} tokens`, description: 'Output tokens generated' });
+        if (item.elapsed_ms != null) values.push({ value: `${(item.elapsed_ms / 1000).toFixed(1)}s`, description: 'Total response time, including prompt processing and generation' });
+        if (item.time_to_first_token_ms != null) values.push({ value: `${(item.time_to_first_token_ms / 1000).toFixed(1)}s first token`, description: 'Time from sending the request until the first response text arrived' });
+        if (item.output_tokens_per_second != null) values.push({ value: `${item.output_tokens_per_second.toFixed(1)} tok/s`, description: 'Output tokens generated per second after the first token arrived' });
+        return values;
+      }
+
+      async function refreshHistory() {
+        const list = document.querySelector('#history-list');
+        if (!invoke) return;
+        try {
+          const conversations = await invoke('list_conversations', { archived: showArchived });
+          list.replaceChildren();
+          document.querySelector('#history-heading').textContent = showArchived ? 'Archived conversations' : 'Recent conversations';
+          if (!conversations.length) {
+            const empty = document.createElement('div');
+            empty.className = 'history-item';
+            empty.textContent = showArchived ? 'No archived conversations' : 'Your conversations will appear here';
+            list.append(empty);
+            return;
+          }
+          for (const item of conversations) {
+            const row = document.createElement('div');
+            row.className = 'history-row';
+            const open = document.createElement('button');
+            open.className = `nav-button history-item history-open${activeTimelineIds.includes(item.id) ? ' active' : ''}`;
+            open.type = 'button';
+            open.textContent = `${item.pinned ? '📌 ' : ''}${item.title}`;
+            open.title = item.title;
+            open.addEventListener('click', () => {
+              const pending = [...activeGenerations.values()].find((generation) => generation.rootId === item.id);
+              openConversation(pending?.conversationId ?? item.id);
+            });
+            if (item.is_generating || [...activeGenerations.values()].some((generation) => generation.rootId === item.id)) {
+              const progress = document.createElement('span');
+              progress.className = 'history-progress';
+              progress.setAttribute('role', 'status');
+              progress.setAttribute('aria-label', `Generating response in ${item.title}`);
+              progress.title = 'Response in progress';
+              row.append(open, progress);
+            } else row.append(open);
+            const actions = document.createElement('details');
+            actions.className = 'history-actions';
+            const summary = document.createElement('summary');
+            summary.textContent = '···';
+            summary.setAttribute('aria-label', `Actions for ${item.title}`);
+            const menu = document.createElement('div');
+            menu.className = 'history-menu';
+            actions.addEventListener('toggle', () => {
+              if (!actions.open) { menu.remove(); return; }
+              document.body.append(menu);
+              const rect = summary.getBoundingClientRect();
+              requestAnimationFrame(() => {
+                const menuHeight = menu.getBoundingClientRect().height || 150;
+                menu.style.top = `${Math.max(8, Math.min(rect.bottom + 4, window.innerHeight - menuHeight - 8))}px`;
+                menu.style.right = `${Math.max(8, window.innerWidth - rect.right)}px`;
+              });
+            });
+            const actionButton = (label, action) => {
+              const button = document.createElement('button');
+              button.type = 'button';
+              button.textContent = label;
+              button.addEventListener('click', async () => { actions.open = false; await manageConversation(item, action); });
+              menu.append(button);
+            };
+            actionButton(item.pinned ? 'Unpin chat' : 'Pin chat', 'pin');
+            actionButton('Rename', 'rename');
+            actionButton(showArchived ? 'Restore from archive' : 'Archive', showArchived ? 'restore' : 'archive');
+            actionButton('Delete', 'delete');
+            actions.append(summary);
+            row.append(actions);
+            list.append(row);
+          }
+        } catch (_) {
+          list.replaceChildren();
+          const unavailable = document.createElement('div');
+          unavailable.className = 'history-item';
+          unavailable.style.color = '#92958d';
+          unavailable.textContent = 'Encrypted history is unavailable';
+          list.append(unavailable);
+        }
+      }
+
+      async function manageConversation(item, action) {
+        try {
+          if (action === 'delete') {
+            if (!window.confirm(`Delete “${item.title}” and all of its timelines? This cannot be undone.`)) return;
+            await invoke('delete_conversation', { id: item.id });
+            if (activeTimelineIds.includes(item.id)) startNewChat();
+            showNotice('Conversation deleted.', 'success');
+          } else if (action === 'rename') {
+            const title = window.prompt('Rename conversation', item.title);
+            if (title == null) return;
+            await invoke('update_conversation', { id: item.id, title, pinned: null, archived: null });
+            if (activeTimelineIds.includes(item.id)) document.querySelector('.chat-title').textContent = title.trim();
+            showNotice('Conversation renamed.', 'success');
+          } else if (action === 'pin') {
+            await invoke('update_conversation', { id: item.id, title: null, pinned: !item.pinned, archived: null });
+            showNotice(item.pinned ? 'Conversation unpinned.' : 'Conversation pinned.', 'success');
+          } else if (action === 'archive' || action === 'restore') {
+            const restore = action === 'restore';
+            await invoke('update_conversation', { id: item.id, title: null, pinned: null, archived: !restore });
+            if (activeTimelineIds.includes(item.id) && !showArchived) startNewChat();
+            if (restore) {
+              if (activeTimelineIds.includes(item.id)) {
+                activeConversationArchived = false;
+                input.disabled = false;
+                document.querySelector('#attach-files').disabled = false;
+                updateSendButton();
+              }
+              showArchived = false;
+              const toggle = document.querySelector('#archive-toggle');
+              toggle.setAttribute('aria-pressed', 'false');
+              toggle.textContent = 'Archived';
+              showNotice('Conversation restored. Showing recent conversations.', 'success');
+            } else showNotice('Conversation archived.', 'success');
+          }
+          await refreshHistory();
+        } catch (error) { showNotice(String(error), 'error'); }
+      }
+
+      function startNewChat() {
+        showCollectionPage(false);
+        activeConversationArchived = false;
+        input.disabled = false;
+        document.querySelector('#attach-files').disabled = false;
+        updateSendButton();
+        messages.replaceChildren();
+        activeConversationId = null;
+        activeConversationRootId = null;
+        branchFromMessageId = null;
+        branchEditMessageElement = null;
+        editingOriginalCollectionIds = null;
+        pendingAttachments = [];
+        renderPendingAttachments();
+        selectedCollectionIds = availableCollections.map((collection) => collection.id);
+        renderCollectionPicker();
+        document.querySelector('.chat-title').textContent = 'New conversation';
+        document.querySelector('#cancel-edit').hidden = true;
+        welcome.hidden = false;
+        activeTimelineIds = [];
+        renderTimelineControl([], 0);
+        input.value = '';
+        input.style.height = 'auto';
+        updateSendButton();
+        input.focus();
+      }
+
+      function renderTimelineControl(ids, index, anchor = null) {
+        activeTimelineIds = ids ?? [];
+        activeTimelineIndex = index ?? 0;
+        const nav = document.querySelector('#timeline-nav');
+        nav.hidden = true;
+        if (!anchor || activeTimelineIds.length < 2) return;
+        anchor.querySelector('.timeline-inline')?.remove();
+        const inline = document.createElement('div'); inline.className = 'timeline-inline'; inline.setAttribute('aria-label', 'Edited message timelines');
+        const previous = document.createElement('button'); previous.type = 'button'; previous.textContent = '‹'; previous.setAttribute('aria-label', 'Previous timeline'); previous.disabled = activeTimelineIndex <= 0;
+        previous.addEventListener('click', () => openConversation(activeTimelineIds[activeTimelineIndex - 1]));
+        const label = document.createElement('span'); label.textContent = `${activeTimelineIndex + 1}/${activeTimelineIds.length}`;
+        const next = document.createElement('button'); next.type = 'button'; next.textContent = '›'; next.setAttribute('aria-label', 'Next timeline'); next.disabled = activeTimelineIndex >= activeTimelineIds.length - 1;
+        next.addEventListener('click', () => openConversation(activeTimelineIds[activeTimelineIndex + 1]));
+        inline.append(previous, label, next); anchor.append(inline);
+      }
+
+      async function openConversation(id, attachmentImportMessageId = null) {
+        showCollectionPage(false);
+        try {
+          const data = await invoke('load_conversation', { id });
+          activeConversationId = id;
+          activeConversationRootId = data.conversation.id;
+          activeConversationArchived = Boolean(data.conversation.archived);
+          input.disabled = activeConversationArchived;
+          document.querySelector('#attach-files').disabled = activeConversationArchived;
+          updateSendButton();
+          renderTimelineControl(data.timeline_ids, data.timeline_index);
+          branchFromMessageId = null;
+          selectedCollectionIds = (data.selected_collection_ids ?? availableCollections.map((collection) => collection.id)).filter((id) => availableCollections.some((collection) => collection.id === id));
+          renderCollectionPicker();
+          document.querySelector('#cancel-edit').hidden = true;
+          editingOriginalCollectionIds = null;
+          document.querySelector('.chat-title').textContent = data.conversation.title;
+          messages.replaceChildren();
+          welcome.hidden = true;
+          const timelineAnchors = new Set(data.timeline_anchor_message_ids ?? []);
+          const pendingGeneration = activeGenerations.get(String(id));
+          let previousUserTurn = null;
+          for (const item of data.messages) {
+            if (item.role === 'user' && item.input_tokens_per_second > 0) lastObservedPromptSpeed = item.input_tokens_per_second;
+            if (item.role === 'assistant' && item.output_tokens_per_second > 0) lastObservedOutputSpeed = item.output_tokens_per_second;
+            const isPending = item.role === 'assistant' && item.generation_status === 'pending';
+            const article = addMessage(item.role, item.content, item.role === 'user' ? userMessageMeta(item) : assistantMessageMeta(item), item.sources, isPending ? null : item.id, item.collection_ids, item.attachments ?? [], previousUserTurn);
+            if (isPending) showPendingAssistant(article, pendingGeneration ?? { text: '' });
+            if (item.role === 'user') previousUserTurn = { id: item.id, content: item.content, collection_ids: item.collection_ids, attachments: item.attachments ?? [], article };
+            if (item.id === attachmentImportMessageId && item.attachments?.length) { article.querySelector('.message-attachments')?.remove(); appendMessageAttachments(article, item.attachments, true); }
+            if (item.role === 'user' && timelineAnchors.has(item.id)) renderTimelineControl(data.timeline_ids, data.timeline_index, article);
+          }
+          refreshHistory();
+          conversation.scrollTop = conversation.scrollHeight;
+          input.focus();
+        } catch (error) {
+          addMessage('assistant', String(error));
+        }
+      }
+
+      async function refreshStatus() {
+        if (!invoke) return;
+        try {
+          const status = await invoke('service_status');
+          const storageDetail = document.querySelector('#storage-detail');
+          storageDetail.textContent = status.storage_ready ? 'Private · Encrypted history ready' : status.storage_detail;
+          storageDetail.title = status.storage_detail;
+          const warning = document.querySelector('#models-asleep-dialog');
+          if (status.chat_model_sleeping && !sleepWarningDismissed && !warning.open) warning.showModal();
+          if (!status.chat_model_sleeping) {
+            sleepWarningDismissed = false;
+            if (warning.open) warning.close();
+          }
+        } catch (_) {
+          // A transient status check failure should not block the current conversation.
+        }
+      }
+
+      form.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        if (currentGenerationId) {
+          if (generationStopPending) return;
+          generationStopPending = true;
+          updateSendButton();
+          const requestId = currentGenerationId;
+          showNotice('Stopping generation…', 'info', 0);
+          try { await invoke('stop_generation', { requestId }); }
+          catch (error) { generationStopPending = false; updateSendButton(); showNotice(String(error), 'warning'); }
+          return;
+        }
+        const text = input.value.trim();
+        if ((!text && pendingAttachments.length === 0) || send.disabled) return;
+        if (activeConversationArchived) { showNotice('Restore this archived conversation before continuing.', 'warning'); return; }
+        if (!invoke) { addMessage('assistant', 'The desktop bridge is unavailable. Launch this screen from the installed application.'); return; }
+        try {
+          let status = await invoke('service_status');
+          if (status.models_initializing) {
+            showNotice('Loading local models. Please wait…', 'info', 0);
+            for (let attempt = 0; attempt < 240 && status.models_initializing; attempt++) {
+              await new Promise((resolve) => setTimeout(resolve, 1000));
+              status = await invoke('service_status');
+            }
+            document.querySelector('#notice').hidden = true;
+            clearTimeout(noticeTimeout);
+            if (status.models_initializing) throw new Error('Model startup is taking longer than expected. Try sending again shortly.');
+          }
+          if (!status.ready) throw new Error(status.detail || 'The local model service is not ready.');
+          if (status.chat_model_sleeping) {
+            showNotice('Loading the model. Please wait a few seconds…', 'info', 0);
+            await invoke('load_chat_model');
+            document.querySelector('#notice').hidden = true;
+            clearTimeout(noticeTimeout);
+            sleepWarningDismissed = false;
+            const warning = document.querySelector('#models-asleep-dialog');
+            if (warning.open) warning.close();
+          }
+        } catch (error) { showNotice(String(error), 'error'); return; }
+        const originalConversationId = activeConversationId;
+        const originalBranchMessageId = branchFromMessageId;
+        const selectedForTurn = [...selectedCollectionIds];
+        const attachments = pendingAttachments.filter((file) => !file.processing && (file.content || file.media_data_base64)).map((file) => ({ filename: file.filename, path: file.path, byte_size: file.byte_size, estimated_tokens: file.estimated_tokens, content: file.content ?? '', media_mime: file.media_mime ?? null, media_format: file.media_format ?? null, media_data_base64: file.media_data_base64 ?? null }));
+        const attachmentTokens = attachments.reduce((sum, file) => sum + file.estimated_tokens, 0);
+        if (pendingAttachments.some((file) => file.processing)) { showNotice('Wait for attached files to finish processing.', 'info'); return; }
+        if (attachmentTokens > 5000) {
+          const ids = await chooseCollectionsForAttachment('these attachments', 'The files exceed the 5,000-token chat limit. Select collections to index them for future retrieval instead.');
+          if (ids?.length) { try { await addFilesToSelectedCollections(attachments.map((file) => file.path), ids, 'the selected attachments'); pendingAttachments = []; renderPendingAttachments(); } catch (error) { showNotice(String(error), 'error'); } }
+          return;
+        }
+        const requestId = crypto.randomUUID();
+        let start = null;
+        let unlisten = null;
+        try {
+          start = await invoke('begin_message', {
+            content: text,
+            conversationId: originalConversationId,
+            branchFromMessageId: originalBranchMessageId,
+            collectionIds: selectedForTurn,
+            attachments,
+          });
+          const generation = {
+            requestId,
+            conversationId: start.conversation_id,
+            rootId: start.root_conversation_id,
+            userMessageId: start.user_message_id,
+            assistantMessageId: start.assistant_message_id,
+            text: '',
+            bubble: null,
+            startedAt: Date.now(),
+            estimatedSeconds: estimateResponseSeconds(text, attachments),
+            expectedOutputTokens: 80,
+            promptSpeed: null,
+            promptProgress: null,
+            lastProgressAt: 0,
+            lastProcessedTokens: 0,
+            progressPolling: false,
+            firstTokenAt: null,
+            timer: null,
+            progressTimer: null,
+          };
+          activeGenerations.set(String(start.conversation_id), generation);
+          currentGenerationId = requestId;
+          generationStopPending = false;
+          activeConversationId = start.conversation_id;
+          activeConversationRootId = start.root_conversation_id;
+          branchFromMessageId = null;
+          branchEditMessageElement = null;
+          editingOriginalCollectionIds = null;
+          document.querySelector('#cancel-edit').hidden = true;
+          input.value = '';
+          input.style.height = 'auto';
+          pendingAttachments = [];
+          renderPendingAttachments();
+          updateSendButton();
+          if (window.__TAURI__?.event?.listen) {
+            unlisten = await window.__TAURI__.event.listen('chat-stream', (streamEvent) => {
+              if (streamEvent.payload?.request_id !== requestId) return;
+              generation.text += streamEvent.payload.delta ?? '';
+              if (generation.text && !generation.firstTokenAt) {
+                generation.firstTokenAt = Date.now();
+                generation.promptProgress = null;
+                clearGenerationEta(generation);
+              }
+              if (generation.bubble) {
+                generation.bubble.dataset.waiting = 'false';
+                generation.bubble.classList.remove('thinking-indicator');
+                generation.bubble.removeAttribute('role');
+                generation.bubble.removeAttribute('aria-label');
+                generation.bubble.textContent = generation.text;
+              }
+              if (!generation.firstTokenAt) updateGenerationEstimate(generation);
+              if (String(activeConversationId) === String(start.conversation_id)) conversation.scrollTop = conversation.scrollHeight;
+            });
+          }
+          const replyPromise = invoke('send_message', {
+            content: text,
+            requestId,
+            conversationId: start.conversation_id,
+            userMessageId: start.user_message_id,
+            assistantMessageId: start.assistant_message_id,
+            collectionIds: selectedForTurn,
+            attachments,
+          });
+          await openConversation(start.conversation_id);
+          await refreshHistory();
+          const reply = await replyPromise;
+          if (reply.input_tokens_per_second > 0) lastObservedPromptSpeed = reply.input_tokens_per_second;
+          if (reply.output_tokens_per_second > 0) lastObservedOutputSpeed = reply.output_tokens_per_second;
+          if (generation.timer) clearInterval(generation.timer);
+          if (generation.progressTimer) clearInterval(generation.progressTimer);
+          activeGenerations.delete(String(start.conversation_id));
+          if (currentGenerationId === requestId) currentGenerationId = null;
+          generationStopPending = false;
+          updateSendButton();
+          if (reply.interrupted) showNotice('Generation stopped. “User interrupted generation.” was saved with the response.', 'info');
+          if (String(activeConversationId) === String(reply.conversation_id)) await openConversation(reply.conversation_id);
+          await refreshHistory();
+        } catch (error) {
+          if (start) {
+            try { await invoke('finish_failed_generation', { conversationId: start.conversation_id, assistantMessageId: start.assistant_message_id, error: String(error) }); } catch (_) {}
+            const failedGeneration = activeGenerations.get(String(start.conversation_id));
+            if (failedGeneration?.timer) clearInterval(failedGeneration.timer);
+            if (failedGeneration?.progressTimer) clearInterval(failedGeneration.progressTimer);
+            activeGenerations.delete(String(start.conversation_id));
+          }
+          if (currentGenerationId === requestId) currentGenerationId = null;
+          generationStopPending = false;
+          updateSendButton();
+          if (start && String(activeConversationId) === String(start.conversation_id)) await openConversation(start.conversation_id);
+          await refreshHistory();
+          showNotice(String(error), 'error');
+        } finally {
+          if (unlisten) unlisten();
+          updateSendButton();
+          input.focus();
+          if (start && String(activeConversationId) === String(start.conversation_id)) conversation.scrollTop = conversation.scrollHeight;
+          refreshStatus();
+        }
+      });
+
+      document.querySelector('#cancel-edit').addEventListener('click', () => {
+        branchFromMessageId = null; branchEditMessageElement = null;
+        if (editingOriginalCollectionIds) selectedCollectionIds = editingOriginalCollectionIds;
+        editingOriginalCollectionIds = null; pendingAttachments = []; renderPendingAttachments(); renderCollectionPicker();
+        input.value = ''; input.style.height = 'auto'; updateSendButton();
+        document.querySelector('#cancel-edit').hidden = true;
+        input.focus();
+      });
+
+      document.querySelector('#models-asleep-cancel').addEventListener('click', () => {
+        sleepWarningDismissed = true; document.querySelector('#models-asleep-dialog').close();
+      });
+      document.querySelector('#models-asleep-dialog').addEventListener('cancel', () => { sleepWarningDismissed = true; });
+      document.querySelector('#models-asleep-load').addEventListener('click', async (event) => {
+        const button = event.currentTarget; button.disabled = true; button.textContent = 'Loading…';
+        try {
+          await invoke('load_chat_model'); sleepWarningDismissed = false;
+          document.querySelector('#models-asleep-dialog').close();
+          showNotice('LFM3-Omni is ready.', 'success'); refreshStatus();
+        } catch (error) { showNotice(String(error), 'error'); }
+        finally { button.disabled = false; button.textContent = 'Load model'; }
+      });
+
+      input.addEventListener('input', () => { input.style.height = 'auto'; input.style.height = `${Math.min(input.scrollHeight, 160)}px`; });
+      input.addEventListener('keydown', (event) => { if (event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); form.requestSubmit(); } });
+      document.querySelector('#new-chat').addEventListener('click', startNewChat);
+      document.querySelector('#select-all').addEventListener('click', async () => { if (await applyCollectionSelection(availableCollections.map((collection) => collection.id))) renderCollectionPicker(); });
+      document.querySelector('#select-none').addEventListener('click', async () => { if (await applyCollectionSelection([])) renderCollectionPicker(); });
+      document.addEventListener('pointerdown', (event) => {
+        const picker = document.querySelector('#collection-picker');
+        if (!picker.contains(event.target)) picker.open = false;
+        if (!event.target.closest('.history-actions, .history-menu')) document.querySelectorAll('.history-actions[open]').forEach((menu) => { menu.open = false; });
+      });
+      document.addEventListener('keydown', (event) => { if (event.key === 'Escape') { document.querySelector('#collection-picker').open = false; document.querySelectorAll('.history-actions[open]').forEach((menu) => { menu.open = false; }); } });
+      document.querySelector('#timeline-prev').addEventListener('click', () => { if (activeTimelineIndex > 0) openConversation(activeTimelineIds[activeTimelineIndex - 1]); });
+      document.querySelector('#timeline-next').addEventListener('click', () => { if (activeTimelineIndex < activeTimelineIds.length - 1) openConversation(activeTimelineIds[activeTimelineIndex + 1]); });
+      document.querySelector('#archive-toggle').addEventListener('click', (event) => { showArchived = !showArchived; event.currentTarget.setAttribute('aria-pressed', String(showArchived)); event.currentTarget.textContent = showArchived ? 'Recent' : 'Archived'; refreshHistory(); });
+      let lastActivityNotice = 0;
+      const recordUiActivity = () => {
+        if (!invoke) return;
+        const now = Date.now();
+        if (now - lastActivityNotice < 15000) return;
+        lastActivityNotice = now;
+        invoke('record_activity').catch(() => {});
+      };
+      document.addEventListener('pointerdown', recordUiActivity, { passive: true });
+      document.addEventListener('pointermove', recordUiActivity, { passive: true });
+      document.addEventListener('keydown', recordUiActivity, { passive: true });
+      document.addEventListener('wheel', recordUiActivity, { passive: true });
+      document.querySelector('#attach-files').addEventListener('click', async () => {
+        try { const paths = await invoke('pick_files'); if (paths.length) await attachChatFiles(paths); }
+        catch (error) { showNotice(String(error), 'error'); }
+      });
+      document.querySelector('#collections-nav').addEventListener('click', () => showCollectionPage(true));
+      document.querySelector('#collections-back').addEventListener('click', () => showCollectionPage(false));
+      document.querySelector('#collection-detail-back').addEventListener('click', () => { activeManagedCollectionId = null; renderCollectionManager(); });
+      document.querySelector('#document-content-close').addEventListener('click', () => document.querySelector('#document-content-dialog').close());
+      document.querySelector('#document-content-dialog').addEventListener('click', (event) => { if (event.target === event.currentTarget) event.currentTarget.close(); });
+      document.querySelector('#collection-create').addEventListener('submit', async (event) => {
+        event.preventDefault();
+        const name = document.querySelector('#collection-name').value.trim();
+        if (!name) return;
+        try {
+          const created = await invoke('create_collection', { name });
+          importCollectionId = created.id;
+          document.querySelector('#collection-name').value = '';
+          await refreshCollections();
+          if (activeConversationId == null) { selectedCollectionIds = availableCollections.map((collection) => collection.id); renderCollectionPicker(); }
+          showNotice(`Created collection “${created.name}”.`, 'success');
+        } catch (error) { showNotice(String(error), 'error'); }
+      });
+      if (window.__TAURI__?.event?.listen) {
+        window.__TAURI__.event.listen('collection-import-progress', (event) => handleCollectionImportProgress(event.payload)).catch((error) => showNotice(`Import progress could not be displayed: ${String(error)}`, 'warning'));
+        window.__TAURI__.event.listen('tauri://drag-enter', () => { const overlay = document.querySelector('#drop-overlay'); overlay.textContent = currentCollectionPage ? 'Drop files to add them to this collection' : 'Drop files to attach them to this chat'; overlay.hidden = false; });
+        window.__TAURI__.event.listen('tauri://drag-leave', () => { document.querySelector('#drop-overlay').hidden = true; });
+        window.__TAURI__.event.listen('tauri://drag-drop', (event) => {
+          document.querySelector('#drop-overlay').hidden = true;
+          const paths = event.payload?.paths;
+          if (Array.isArray(paths) && paths.length) { if (currentCollectionPage) importFiles(paths); else attachChatFiles(paths); }
+        });
+      }
+      refreshStatus();
+      refreshHistory();
+      refreshCollections();
+      setInterval(refreshStatus, 5000);
+    </script>
+  </body>
+</html>

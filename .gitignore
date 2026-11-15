@@ -1,0 +1,39 @@
+# Model weights and vendor runtimes are provisioned by IT and are not stored in Git.
+/models/*
+!/models/app-models.ini
+!/models/TEST_MODELS.md
+!/models/start-servers.bat
+/vendor/
+/github-resources/
+
+# Generated QA output (the script and documentation are source files).
+/qa/artifacts/
+
+# Rust and Tauri build output.
+/target/
+/src-tauri/target/
+/src-tauri/gen/
+/src-tauri/binaries/
+
+# Frontend dependencies and generated output.
+/node_modules/
+/dist/
+/build/
+
+# Employee-local databases and application data.
+*.db
+*.sqlite
+*.sqlite3
+*.dpapi
+/data/
+/app-data/
+
+# Local secrets and machine-specific files.
+.env
+.env.*
+!.env.example
+.DS_Store
+Thumbs.db
+desktop.ini
+.idea/
+.vscode/
