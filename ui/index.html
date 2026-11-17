@@ -114,19 +114,64 @@
       .markdown code { padding:2px 5px; border-radius:5px; background:#f0f1ed; font:.9em ui-monospace,Consolas,monospace; }
       .markdown pre { overflow:auto; padding:12px; border-radius:10px; background:#f3f4f1; } .markdown pre code { padding:0; background:transparent; }
       .markdown a { color:#365f82; text-decoration:underline; text-underline-offset:2px; }
-      .thinking-indicator { display:inline-flex; align-items:center; gap:7px; color:#70766c; font-size:13px; }
-      .generation-eta { margin:6px 2px 0; color:#777d72; font-size:12px; }
-      .generation-eta::before { content:'◷'; margin-right:6px; color:#65785c; }
+      .message.assistant.is-generating { width:min(780px,100%); max-width:100%; }
+      .assistant .bubble.thinking-indicator { width:100%; }
+      .assistant-progress-row { display:flex; align-items:center; gap:8px; width:100%; min-height:24px; }
+      .thinking-indicator { color:#70766c; font-size:15px; }
       .thinking-dots { display:inline-flex; align-items:center; gap:3px; }
       .thinking-dots span { width:4px; height:4px; border-radius:50%; background:#798272; transform:translateY(0); }
       @media (prefers-reduced-motion:no-preference) { .thinking-dots span { animation:thinking-bounce 900ms cubic-bezier(.22,.68,0,1.1) infinite; } .thinking-dots span:nth-child(2) { animation-delay:120ms; } .thinking-dots span:nth-child(3) { animation-delay:240ms; } }
       @keyframes thinking-bounce { 0%,60%,100% { transform:translateY(0); } 30% { transform:translateY(-4px); } }
+      .agent-activity { display:grid; gap:8px; margin-top:10px; }
+      .agent-activity-details { color:#51574e; }
+      .agent-activity-details summary { width:max-content; cursor:pointer; font-size:13px; font-weight:650; }
+      .agent-activity-list { display:grid; gap:7px; margin:9px 0 0; padding:0; list-style:none; }
+      .agent-activity-entry { display:grid; gap:3px; padding:9px 11px; border-left:3px solid #c7d0bf; background:#f7f8f5; }
+      .agent-activity-entry strong { color:#32382f; font-size:13px; font-weight:700; }
+      .agent-activity-entry span,.agent-activity-entry p { margin:0; color:#656b61; font-size:12px; line-height:1.45; }
       .collection-page { flex:1; min-height:0; display:flex; flex-direction:column; }
       .collection-page-head { display:flex; align-items:center; justify-content:space-between; gap:16px; padding:23px 28px 17px; border-bottom:1px solid #f0f0ed; }
       .collection-page-head h1 { font-size:22px; } .collection-page-head p { margin:4px 0 0; color:#7c8178; font-size:12px; }
       .collection-page-head-left { display:flex; align-items:flex-start; gap:12px; min-width:0; }
       .collection-detail-back { width:34px; height:34px; flex:0 0 auto; display:grid; place-items:center; border:1px solid #e5e7e1; border-radius:10px; background:#fff; color:#343a31; font-size:23px; line-height:1; font-weight:750; cursor:pointer; }
       .collection-detail-back:hover { background:#f3f5f1; border-color:#ccd3c7; }
+      .mcp-form { display:grid; gap:14px; max-width:760px; margin-bottom:22px; }
+      .mcp-form input { width:100%; min-width:0; border:1px solid #dedfda; border-radius:9px; padding:9px 11px; background:#fff; color:inherit; }
+      .mcp-fields { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1.5fr); gap:12px; }
+      .mcp-field { display:grid; gap:5px; color:#555b52; font-size:12px; font-weight:600; }
+      .mcp-help { margin:0; color:#777d73; font-size:12px; font-weight:400; }
+      .mcp-header-list { display:grid; gap:7px; }
+      .mcp-header-row { display:grid; grid-template-columns:minmax(100px,.8fr) minmax(120px,1.2fr) auto; gap:7px; }
+      .mcp-remove-header { width:34px; border:1px solid #e4e5df; border-radius:8px; background:#fff; color:#676d63; cursor:pointer; }
+      .mcp-remove-header:hover { background:#fff3f0; color:#9d3b2d; }
+      .mcp-form-actions { display:flex; flex-wrap:wrap; align-items:center; gap:9px; }
+      .mcp-form-actions .page-button { min-height:36px; }
+      .mcp-auth-replace { display:flex; align-items:flex-start; gap:8px; color:#6d726a; font-size:12px; font-weight:400; }
+      .mcp-auth-replace input { width:auto; margin:2px 0 0; accent-color:#526b4b; }
+      .mcp-connector-list { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,360px),1fr)); gap:10px; max-width:1200px; }
+      .mcp-connector-card { display:grid; gap:10px; min-width:0; padding:14px 15px; border:1px solid #e7e9e3; border-radius:11px; background:#fff; }
+      .mcp-connector-main { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; min-width:0; }
+      .mcp-connector-description { min-width:0; }
+      .mcp-connector-name { min-width:0; overflow-wrap:anywhere; font-weight:650; }
+      .mcp-connector-endpoint { margin-top:3px; color:#858a80; font-size:11px; overflow-wrap:anywhere; }
+      .mcp-connector-status { flex:0 0 auto; display:inline-flex; align-items:center; gap:6px; color:#8f342b; font-size:11px; font-weight:650; }
+      .mcp-connector-status[data-available="true"] { color:#3e6844; }
+      .mcp-connector-status::before { content:""; width:7px; height:7px; border-radius:50%; background:currentColor; }
+      .mcp-connector-detail { color:#777d73; font-size:11px; overflow-wrap:anywhere; }
+      .mcp-connector-actions { display:flex; flex-wrap:wrap; gap:6px; }
+      .mcp-connector-actions button { border:1px solid #e4e5df; border-radius:8px; background:#fff; padding:6px 9px; color:#4f554b; font-size:11px; cursor:pointer; }
+      .mcp-connector-actions button:hover:not(:disabled) { background:#f4f5f1; }
+      .mcp-connector-actions button:disabled { opacity:.5; cursor:wait; }
+      .mcp-connector-actions .mcp-delete { color:#8b342c; }
+      .mcp-selector-list { display:grid; gap:8px; max-height:min(48vh,380px); overflow:auto; margin-top:14px; }
+      .mcp-selector-option { display:grid; grid-template-columns:auto minmax(0,1fr) auto; align-items:center; gap:10px; padding:10px; border:1px solid #e7e9e3; border-radius:9px; }
+      .mcp-selector-option input { width:16px; height:16px; margin:0; accent-color:#526b4b; }
+      .mcp-selector-option input:disabled { cursor:not-allowed; }
+      .mcp-selector-option-name { min-width:0; overflow-wrap:anywhere; color:#41473f; font-size:12px; font-weight:600; }
+      .mcp-selector-option-state { color:#858a80; font-size:10px; white-space:nowrap; }
+      .mcp-selector-empty { padding:15px 3px; color:#777d73; font-size:12px; }
+      .mcp-selector-budget { margin:12px 0 0; color:#626a5e; font-size:12px; font-weight:600; }
+      .mcp-selector-budget[data-over-limit="true"] { color:#8b342c; }
       .collection-page-body { overflow:auto; padding:20px 28px 30px; scrollbar-width:thin; scrollbar-color:#b8bcb3 transparent; }
       .collection-page-body::-webkit-scrollbar { width:8px; } .collection-page-body::-webkit-scrollbar-thumb { background:#c4c8bf; border-radius:99px; }
       .collection-create { display:flex; gap:9px; max-width:560px; margin-bottom:20px; }
@@ -217,6 +262,7 @@
       .collection-option-actions button:hover { background:#f0f3ed; }
       .attach { width:36px; height:36px; flex:0 0 auto; display:grid; place-items:center; border:0; border-radius:10px; background:transparent; color:#666b62; cursor:pointer; }
       .attach:hover { background:#f0f1ed; color:#292e28; }
+      .mcp-select-button[aria-pressed="true"] { background:#eef1eb; color:#40533a; }
       .sources { margin:8px 2px 0; border-top:1px solid #eeefea; padding-top:7px; color:#73796f; font-size:11px; }
       .sources summary { cursor:pointer; width:max-content; }
       .source-item { margin-top:8px; padding:9px 10px; border-left:2px solid #c6d0bd; background:#f8f9f6; color:#5c6258; white-space:pre-wrap; }
@@ -230,6 +276,7 @@
       .send:hover { background:#3b4038; }
       .send:disabled { opacity:.48; cursor:wait; }
       @media (max-width:520px) { .header-left { gap:7px; } .timeline-nav { gap:0; } .timeline-label { max-width:62px; overflow:hidden; white-space:nowrap; } .composer { gap:5px; padding:8px; } .attach { width:32px; } }
+      @media (max-width:520px) { .mcp-fields { grid-template-columns:1fr; } .mcp-header-row { grid-template-columns:minmax(80px,.8fr) minmax(100px,1.2fr) 32px; gap:5px; } .mcp-header-row input { padding:8px; font-size:12px; } .collection-page-body { padding:17px 15px 24px; } .collection-page-head { padding:18px 15px 14px; } }
       @media (max-width:720px) { .shell { grid-template-columns:1fr; padding:0; gap:0; } aside { display:none; } main { border:0; border-radius:0; } header { padding:0 15px; } .conversation { padding:24px 15px; } .composer-wrap { padding:0 12px 12px; } .collection-picker summary { max-width:115px; overflow:hidden; text-overflow:ellipsis; } }
       @media (prefers-reduced-motion:reduce) { *,*::before,*::after { scroll-behavior:auto !important; animation-duration:0.01ms !important; animation-iteration-count:1 !important; transition-duration:0.01ms !important; } }
     </style>
@@ -240,6 +287,7 @@
         <div class="brand"><span class="mark" aria-hidden="true">L</span><span>Local Chat</span></div>
         <button class="nav-button" id="new-chat" type="button">＋ &nbsp; New chat</button>
         <button class="nav-button" id="collections-nav" type="button"><span class="nav-label">▦ &nbsp; Collections</span><span class="sidebar-import-spinner" id="sidebar-import-spinner" role="img" aria-label="Documents are being processed" title="Documents are being processed" hidden></span></button>
+        <button class="nav-button" id="mcp-nav" type="button" data-mcp-demo hidden>⛓ &nbsp; Connectors</button>
         <div class="section-head"><div class="section-label" id="history-heading">Recent conversations</div><button class="small-button archive-toggle" id="archive-toggle" type="button" aria-pressed="false">Archived</button></div>
         <div class="history" id="history-list"><div class="history-item" style="color:#92958d">Loading conversations…</div></div>
         <div class="sidebar-foot" id="storage-detail">Checking encrypted history…</div>
@@ -256,6 +304,7 @@
         <div class="composer-wrap" id="composer-wrap">
           <form class="composer" id="composer">
             <button class="attach" id="attach-files" type="button" aria-label="Attach documents, images, or audio" title="Attach files to this message"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m8.5 12.5 6.8-6.8a3 3 0 0 1 4.2 4.2l-9.2 9.2a5 5 0 0 1-7.1-7.1l9.2-9.2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+            <button class="attach mcp-select-button" id="mcp-connectors-button" type="button" data-mcp-demo hidden aria-label="Select MCP connectors" aria-haspopup="dialog" aria-pressed="false" title="Choose connectors for this conversation"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M9.8 14.2 14.2 9.8M8.2 16.4l-1.1 1.1a3.1 3.1 0 0 1-4.4-4.4l4-4a3.1 3.1 0 0 1 4.4 0M15.8 7.6l1.1-1.1a3.1 3.1 0 0 1 4.4 4.4l-4 4a3.1 3.1 0 0 1-4.4 0" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
             <details class="collection-picker" id="collection-picker"><summary id="collection-summary">All collections⌄</summary><div class="collection-options"><div class="collection-option-actions"><button type="button" id="select-all">Select all</button><button type="button" id="select-none">Clear</button></div><div id="collection-checkboxes"></div></div></details>
             <textarea id="message-input" rows="1" maxlength="20000" aria-label="Message" placeholder="Message the local model…"></textarea>
             <div class="edit-actions"><button class="cancel-edit" id="cancel-edit" type="button" hidden>Cancel</button><button class="send" id="send" type="submit">Send</button></div>
@@ -265,11 +314,42 @@
           <div class="collection-page-head"><div class="collection-page-head-left"><button class="collection-detail-back" id="collection-detail-back" type="button" aria-label="Back to all collections" title="Back to all collections" hidden>‹</button><div><h1 id="collections-title">Collections</h1><p id="collections-description">Keep project documents separate so each chat can search the right context.</p></div></div><button class="page-button" id="collections-back" type="button">Back to chat</button></div>
           <div class="collection-page-body"><div class="collection-import-status" id="collection-import-status" role="status" aria-live="polite" hidden><div class="import-status-heading"><span id="import-status-message"></span><button class="import-status-close" id="import-status-close" type="button" aria-label="Dismiss import status" title="Dismiss" hidden>×</button></div><div class="import-status-detail" id="import-status-detail"></div><div class="import-progress-track" aria-hidden="true"><div class="import-progress-fill" id="import-progress-fill"></div></div><div class="import-file-list" id="import-file-list"></div></div><form class="collection-create" id="collection-create"><input id="collection-name" maxlength="50" aria-label="New collection name" placeholder="Name a collection" required /><button class="send" type="submit">Create collection</button></form><div id="collection-manager-list" aria-live="polite"></div><div id="collection-files-view" hidden><div class="files-toolbar"><label><input type="checkbox" id="select-all-files" /> Select all files</label><button type="button" id="delete-selected-files">Remove selected files</button></div><div id="collection-file-list"></div></div></div>
         </section>
+        <section class="collection-page" id="mcp-page" data-mcp-demo hidden aria-labelledby="mcp-title">
+          <div class="collection-page-head">
+            <div class="collection-page-head-left"><div><h1 id="mcp-title">MCP connectors</h1><p>Connect trusted tool servers. Authentication headers are stored in encrypted local history.</p></div></div>
+            <button class="page-button" id="mcp-back" type="button">Back to chat</button>
+          </div>
+          <div class="collection-page-body">
+            <form class="mcp-form" id="mcp-connector-form">
+              <div class="mcp-fields">
+                <label class="mcp-field" for="mcp-name">Connector name<input id="mcp-name" maxlength="80" autocomplete="off" required placeholder="Team calendar" /></label>
+                <label class="mcp-field" for="mcp-endpoint">Streamable HTTP endpoint<input id="mcp-endpoint" type="url" autocomplete="url" required placeholder="https://tools.example.com/mcp" /></label>
+              </div>
+              <div>
+                <div class="mcp-field">Authentication headers<p class="mcp-help">Optional. Use HTTPS for remote servers; header values are encrypted at rest and never shown after saving.</p></div>
+                <div class="mcp-header-list" id="mcp-header-list"></div>
+                <button class="small-button" id="mcp-add-header" type="button">＋ Add header</button>
+                <label class="mcp-auth-replace" id="mcp-auth-replace-label" hidden><input id="mcp-auth-replace" type="checkbox" /> Replace saved authentication headers (leave no rows to remove them)</label>
+              </div>
+              <div class="mcp-form-actions"><button class="send" id="mcp-save" type="submit">Add connector</button><button class="page-button" id="mcp-cancel-edit" type="button" hidden>Cancel edit</button></div>
+            </form>
+            <div class="mcp-connector-list" id="mcp-connector-list" aria-live="polite"></div>
+          </div>
+        </section>
       </main>
     </div>
     <div class="drop-overlay" id="drop-overlay" hidden>Drop files to import</div>
     <div class="notice" id="notice" data-kind="info" role="status" aria-live="polite" hidden><span class="notice-message" id="notice-message"></span><button class="notice-close" id="notice-close" type="button" aria-label="Dismiss notification">×</button></div>
     <dialog class="app-dialog" id="collection-change-dialog" aria-labelledby="collection-change-title"><form method="dialog" class="dialog-content"><h2 id="collection-change-title">Change collections for this chat?</h2><p class="dialog-description">This changes retrieval context for future messages only. Earlier answers keep the collections and sources they used.</p><label class="dialog-check"><input type="checkbox" id="skip-collection-warning" /><span>Don't show this warning again in this chat</span></label><div class="dialog-actions"><button value="cancel">Keep current selection</button><button class="dialog-primary" value="continue">Apply change</button></div></form></dialog>
+    <dialog class="app-dialog" id="mcp-connector-dialog" data-mcp-demo closedby="any" aria-labelledby="mcp-selector-title" aria-describedby="mcp-selector-description">
+      <div class="dialog-content">
+        <h2 id="mcp-selector-title">Connectors for this chat</h2>
+        <p class="dialog-description" id="mcp-selector-description">Choose available connectors for this chat. The agent can use no more than 15 tools at once. Tool inputs and response bodies stay hidden; the activity log shows names, timing, and safe summaries.</p>
+        <p class="mcp-selector-budget" id="mcp-selector-budget" aria-live="polite"></p>
+        <div class="mcp-selector-list" id="mcp-selector-list" role="group" aria-label="Available MCP connectors"></div>
+        <div class="dialog-actions"><button id="mcp-manage" type="button">Manage connectors</button><button class="dialog-primary" id="mcp-selector-done" type="button">Done</button></div>
+      </div>
+    </dialog>
     <dialog class="app-dialog" id="collection-target-dialog" aria-labelledby="collection-target-title"><div class="dialog-content"><h2 id="collection-target-title">Add document to collections</h2><p class="dialog-description" id="collection-target-description">Choose one or more collections. The document will be indexed for future chats in those spaces.</p><div class="collection-target-picker"><input class="collection-target-search" id="collection-target-search" type="search" role="combobox" aria-autocomplete="list" aria-controls="collection-target-options" aria-expanded="true" aria-label="Search collections" placeholder="Search collections and press Enter" autocomplete="off" /><div class="collection-target-options" id="collection-target-options" role="listbox" aria-label="Available collections"></div></div><div class="collection-target-chips" id="collection-target-chips" aria-live="polite"></div><div class="dialog-actions"><button id="collection-target-cancel" type="button">Cancel</button><button class="dialog-primary" id="collection-target-confirm" type="button" disabled>Add to selected collections</button></div></div></dialog>
     <dialog class="app-dialog" id="models-asleep-dialog" aria-labelledby="models-asleep-title" aria-describedby="models-asleep-description"><div class="dialog-content"><div class="sleep-warning-mark" aria-hidden="true">!</div><h2 id="models-asleep-title">The chat model is asleep</h2><p class="dialog-description" id="models-asleep-description">LFM3-Omni was unloaded to save memory after five minutes of inactivity. Load it now, or cancel and let the next message wake it automatically.</p><div class="dialog-actions"><button id="models-asleep-cancel" type="button">Cancel</button><button class="dialog-primary" id="models-asleep-load" type="button">Load model</button></div></div></dialog>
     <dialog class="document-content-dialog" id="document-content-dialog" aria-labelledby="document-content-title"><div class="document-content-shell"><div class="document-content-head"><h2 id="document-content-title">Extracted document content</h2><button class="document-content-close" id="document-content-close" type="button" aria-label="Close document content">×</button></div><pre class="document-content-body" id="document-content-body"></pre></div></dialog>
@@ -287,8 +367,7 @@
       const activeGenerations = new Map();
       let currentGenerationId = null;
       let generationStopPending = false;
-      let lastObservedPromptSpeed = 16;
-      let lastObservedOutputSpeed = 12;
+      let messageSubmissionPending = false;
       let importCollectionId = null;
       let availableCollections = [];
       let selectedCollectionIds = [];
@@ -310,6 +389,13 @@
       let targetCollectionSelection = [];
       let targetCollectionBackspaceArmedId = null;
       let targetCollectionActiveIndex = 0;
+      let mcpDemoEnabled = false;
+      let mcpConnectors = [];
+      let selectedMcpConnectorIds = [];
+      let mcpSelectorDraftIds = [];
+      const maxAgentTools = 15;
+      const builtInAgentToolSlots = 1;
+      let editingMcpConnectorId = null;
       let pendingAttachments = [];
       let branchEditMessageElement = null;
       let editingOriginalCollectionIds = null;
@@ -357,6 +443,14 @@
           send.classList.toggle('stop-generation', true);
           return;
         }
+        if (messageSubmissionPending) {
+          send.textContent = 'Preparing…';
+          send.setAttribute('aria-label', 'Preparing message');
+          send.title = 'Preparing message';
+          send.disabled = true;
+          send.classList.remove('stop-generation');
+          return;
+        }
         send.textContent = branchFromMessageId == null ? 'Send' : 'Update';
         send.setAttribute('aria-label', branchFromMessageId == null ? 'Send message' : 'Update message');
         send.title = '';
@@ -364,127 +458,88 @@
         send.classList.remove('stop-generation');
       }
 
+      function setMessageSubmissionPending(pending) {
+        messageSubmissionPending = pending;
+        input.disabled = pending || activeConversationArchived;
+        document.querySelector('#attach-files').disabled = pending || activeConversationArchived;
+        collectionPicker.inert = pending || activeConversationArchived;
+        if (mcpDemoEnabled) {
+          document.querySelector('#mcp-connectors-button').disabled = pending || activeConversationArchived;
+        }
+        updateSendButton();
+      }
+
       function showPendingAssistant(article, generation) {
         const bubble = article.querySelector('.bubble');
         generation.bubble = bubble;
-        if (generation.firstTokenAt) {
-          clearGenerationEta(generation);
-        } else {
-          let estimate = article.querySelector('.generation-eta');
-          if (!estimate) {
-            estimate = document.createElement('div');
-            estimate.className = 'generation-eta';
-            estimate.setAttribute('aria-live', 'off');
-            article.append(estimate);
-          }
-          updateGenerationEstimate(generation);
-          if (!generation.timer) generation.timer = setInterval(() => updateGenerationEstimate(generation), 1000);
-          if (generation.requestId && !generation.progressTimer) {
-            generation.progressTimer = setInterval(() => pollGenerationProgress(generation), 1500);
-            pollGenerationProgress(generation);
-          }
-        }
+        generation.article = article;
         if (generation.text) {
+          article.classList.remove('is-generating');
           bubble.dataset.waiting = 'false';
           bubble.classList.remove('thinking-indicator');
           bubble.removeAttribute('role');
           bubble.removeAttribute('aria-label');
           bubble.textContent = generation.text;
+          renderAgentActivity(article, generation);
           return;
         }
+        article.classList.add('is-generating');
         bubble.dataset.waiting = 'true';
         bubble.classList.add('thinking-indicator');
         bubble.setAttribute('role', 'status');
         bubble.setAttribute('aria-label', 'Assistant is preparing a response');
-        const label = document.createElement('span'); label.textContent = 'Thinking';
+        const row = document.createElement('span');
+        row.className = 'assistant-progress-row';
+        const label = document.createElement('span');
+        label.textContent = generation.currentStep || 'Thinking';
+        row.append(label);
         const dots = document.createElement('span'); dots.className = 'thinking-dots'; dots.setAttribute('aria-hidden', 'true');
         for (let index = 0; index < 3; index++) dots.append(document.createElement('span'));
-        bubble.replaceChildren(label, dots);
+        if (!generation.currentStep || generation.currentStep === 'Thinking') row.append(dots);
+        bubble.replaceChildren(row);
+        renderAgentActivity(article, generation);
       }
 
-      function clearGenerationEta(generation) {
-        if (generation.timer) clearInterval(generation.timer);
-        if (generation.progressTimer) clearInterval(generation.progressTimer);
-        generation.timer = null;
-        generation.progressTimer = null;
-        generation.bubble?.parentElement?.querySelector('.generation-eta')?.remove();
-      }
-
-      function estimateResponseSeconds(content, attachments) {
-        if (attachments.some((file) => file.media_mime || file.media_data_base64)) return null;
-        const historyChars = [...messages.querySelectorAll('.bubble')].reduce((sum, bubble) => sum + (bubble.innerText || '').length, 0);
-        const attachmentTokens = attachments.reduce((sum, file) => sum + Number(file.estimated_tokens || 0), 0);
-        const estimatedPromptTokens = Math.max(1, Math.ceil((historyChars + content.length) / 3) + attachmentTokens + 700);
-        const retrievalAndSetup = 3;
-        const expectedOutputTokens = 80;
-        return Math.max(2, Math.ceil(estimatedPromptTokens / lastObservedPromptSpeed + expectedOutputTokens / lastObservedOutputSpeed + retrievalAndSetup));
-      }
-
-      async function pollGenerationProgress(generation) {
-        if (!invoke || generation.progressPolling || generation.firstTokenAt || !generation.requestId) return;
-        generation.progressPolling = true;
-        try {
-          const progress = await invoke('generation_progress');
-          if (progress && Number(progress.prompt_tokens) > 0) {
-            const now = Date.now();
-            const processed = Number(progress.prompt_tokens_processed || 0);
-            if (generation.lastProgressAt && processed > generation.lastProcessedTokens) {
-              const seconds = (now - generation.lastProgressAt) / 1000;
-              const measured = (processed - generation.lastProcessedTokens) / Math.max(seconds, 0.25);
-              if (Number.isFinite(measured) && measured > 0) {
-                generation.promptSpeed = generation.promptSpeed
-                  ? generation.promptSpeed * 0.65 + measured * 0.35
-                  : measured;
-              }
-            }
-            generation.lastProgressAt = now;
-            generation.lastProcessedTokens = processed;
-            generation.promptProgress = {
-              total: Number(progress.prompt_tokens),
-              processed,
-              cached: Number(progress.prompt_tokens_cached || 0),
-            };
-          }
-        } catch (_) {
-          // The live progress endpoint is optional; keep showing elapsed time and fallback estimates.
-        } finally {
-          generation.progressPolling = false;
-          updateGenerationEstimate(generation);
-        }
-      }
-
-      function updateGenerationEstimate(generation) {
-        const estimate = generation.bubble?.parentElement?.querySelector('.generation-eta');
-        if (!estimate || !generation.startedAt) return;
-        const elapsed = Math.max(0, Math.floor((Date.now() - generation.startedAt) / 1000));
-        if (generation.promptProgress && !generation.firstTokenAt) {
-          const { total, processed, cached } = generation.promptProgress;
-          const done = Math.min(total, processed + cached);
-          const promptRemaining = Math.max(0, total - done);
-          if (promptRemaining === 0) {
-            estimate.textContent = `Prompt processed · waiting for the first response token · ${elapsed} sec elapsed`;
-            return;
-          }
-          const promptSpeed = Math.max(0.5, generation.promptSpeed || lastObservedPromptSpeed);
-          const remaining = Math.ceil(promptRemaining / promptSpeed + 80 / lastObservedOutputSpeed);
-          estimate.textContent = `Processing prompt · ${done.toLocaleString()} / ${total.toLocaleString()} tokens · about ${remaining} sec remaining · ${elapsed} sec elapsed`;
+      function renderAgentActivity(article, generation) {
+        let activity = article.querySelector('.agent-activity');
+        if (!generation.toolLog?.length) {
+          activity?.remove();
           return;
         }
-        if (generation.firstTokenAt) {
-          const expected = Math.max(20, generation.expectedOutputTokens || 80);
-          const generated = Math.ceil((generation.text || '').length / 4);
-          const remaining = Math.max(0, Math.ceil((expected - generated) / lastObservedOutputSpeed));
-          estimate.textContent = `Generating response · about ${remaining} sec remaining · ${elapsed} sec elapsed`;
-          return;
+        if (!activity) {
+          activity = document.createElement('div');
+          activity.className = 'agent-activity';
+          article.prepend(activity);
+        } else if (article.firstElementChild !== activity) {
+          article.prepend(activity);
         }
-        if (generation.estimatedSeconds == null) {
-          estimate.textContent = `Preparing multimodal prompt · estimate will update from model progress · ${elapsed} sec elapsed`;
-          return;
+        let details = activity.querySelector('.agent-activity-details');
+        const wasOpen = Boolean(details?.open);
+        if (!details) {
+          details = document.createElement('details');
+          details.className = 'agent-activity-details';
+          const summary = document.createElement('summary');
+          details.append(summary);
+          activity.append(details);
         }
-        const remaining = generation.estimatedSeconds - elapsed;
-        estimate.textContent = remaining > 0
-          ? `Estimated response: about ${remaining} sec remaining · ${elapsed} sec elapsed`
-          : `Still processing · ${elapsed} sec elapsed (initial estimate: about ${generation.estimatedSeconds} sec)`;
+        details.open = wasOpen;
+        details.querySelector('summary').textContent = `Tool activity · ${generation.toolLog.length}`;
+        details.querySelector('.agent-activity-list')?.remove();
+        const list = document.createElement('ol');
+        list.className = 'agent-activity-list';
+        for (const entry of generation.toolLog) {
+          const item = document.createElement('li');
+          item.className = 'agent-activity-entry';
+          const heading = document.createElement('strong');
+          heading.textContent = `${entry.connectorName} · ${entry.toolName}`;
+          const status = document.createElement('span');
+          status.textContent = entry.status === 'running'
+            ? 'Waiting for response…'
+            : `${entry.summary}${entry.elapsedMs != null ? ` · ${(entry.elapsedMs / 1000).toFixed(1)}s` : ''}`;
+          item.append(heading, status);
+          list.append(item);
+        }
+        details.append(list);
       }
 
       async function refreshCollections() {
@@ -508,12 +563,308 @@
 
       function showCollectionPage(show) {
         currentCollectionPage = show;
+        currentMcpPage = false;
         if (show) activeManagedCollectionId = null;
         document.querySelector('#chat-header').hidden = show;
         document.querySelector('#conversation').hidden = show;
         document.querySelector('#composer-wrap').hidden = show;
         document.querySelector('#collections-page').hidden = !show;
+        const mcpPage = document.querySelector('#mcp-page');
+        if (mcpPage) mcpPage.hidden = true;
         if (show) { refreshCollections(); document.querySelector('#collection-name').focus(); }
+      }
+
+      let currentMcpPage = false;
+      function showMcpPage(show) {
+        if (show) showCollectionPage(false);
+        currentMcpPage = show;
+        document.querySelector('#chat-header').hidden = show;
+        document.querySelector('#conversation').hidden = show;
+        document.querySelector('#composer-wrap').hidden = show;
+        document.querySelector('#collections-page').hidden = true;
+        document.querySelector('#mcp-page').hidden = !show;
+        if (show) {
+          refreshMcpConnectors();
+          if (editingMcpConnectorId == null) document.querySelector('#mcp-name').focus();
+        }
+      }
+
+      function updateMcpButton() {
+        const button = document.querySelector('#mcp-connectors-button');
+        button.setAttribute('aria-pressed', String(selectedMcpConnectorIds.length > 0));
+        button.title = selectedMcpConnectorIds.length
+          ? `${selectedMcpConnectorIds.length} connector${selectedMcpConnectorIds.length === 1 ? '' : 's'} selected`
+          : 'Choose connectors for this conversation';
+      }
+
+      function formatMcpCheckTime(timestamp) {
+        if (!timestamp) return 'Not checked yet';
+        const date = new Date(Number(timestamp) * 1000);
+        return Number.isNaN(date.getTime()) ? 'Last check time unavailable' : `Checked ${date.toLocaleString()}`;
+      }
+
+      async function refreshMcpConnectors() {
+        if (!mcpDemoEnabled || !invoke) return false;
+        try {
+          mcpConnectors = await invoke('list_mcp_connectors', { conversationId: activeConversationId });
+          if (activeConversationId != null) {
+            selectedMcpConnectorIds = mcpConnectors.filter((connector) => connector.selected).map((connector) => connector.id);
+          } else {
+            selectedMcpConnectorIds = selectedMcpConnectorIds.filter((id) => mcpConnectors.some((connector) => connector.id === id && connector.available));
+          }
+          updateMcpButton();
+          renderMcpConnectorList();
+          renderMcpSelector();
+          return true;
+        } catch (error) {
+          showNotice(`MCP connectors could not be loaded: ${String(error)}`, 'warning');
+          return false;
+        }
+      }
+
+      function renderMcpConnectorList() {
+        const list = document.querySelector('#mcp-connector-list');
+        list.replaceChildren();
+        if (!mcpConnectors.length) {
+          const empty = document.createElement('div');
+          empty.className = 'collection-empty';
+          empty.textContent = 'No connectors configured. Add a Streamable HTTP endpoint above.';
+          list.append(empty);
+          return;
+        }
+        for (const connector of mcpConnectors) {
+          const card = document.createElement('article');
+          card.className = 'mcp-connector-card';
+          const main = document.createElement('div');
+          main.className = 'mcp-connector-main';
+          const description = document.createElement('div');
+          description.className = 'mcp-connector-description';
+          const name = document.createElement('div');
+          name.className = 'mcp-connector-name';
+          name.textContent = connector.name;
+          const endpoint = document.createElement('div');
+          endpoint.className = 'mcp-connector-endpoint';
+          endpoint.textContent = connector.endpoint;
+          description.append(name, endpoint);
+          const status = document.createElement('span');
+          status.className = 'mcp-connector-status';
+          status.dataset.available = String(connector.available);
+          status.textContent = connector.available ? 'Available' : 'Unavailable';
+          main.append(description, status);
+          const detail = document.createElement('div');
+          detail.className = 'mcp-connector-detail';
+          detail.textContent = connector.last_error
+            ? `${formatMcpCheckTime(connector.last_checked_at)} · ${connector.last_error}`
+            : `${formatMcpCheckTime(connector.last_checked_at)} · ${connector.tool_count} tool${connector.tool_count === 1 ? '' : 's'}${connector.has_custom_headers ? ' · Authentication configured' : ''}`;
+          const actions = document.createElement('div');
+          actions.className = 'mcp-connector-actions';
+          const test = document.createElement('button');
+          test.type = 'button';
+          test.textContent = connector.available ? 'Reconnect / test' : 'Test connection';
+          test.addEventListener('click', () => testMcpConnector(connector.id, test));
+          const edit = document.createElement('button');
+          edit.type = 'button';
+          edit.textContent = 'Edit';
+          edit.addEventListener('click', () => editMcpConnector(connector));
+          const remove = document.createElement('button');
+          remove.type = 'button';
+          remove.className = 'mcp-delete';
+          remove.textContent = 'Delete';
+          remove.addEventListener('click', () => deleteMcpConnector(connector));
+          actions.append(test, edit, remove);
+          card.append(main, detail, actions);
+          list.append(card);
+        }
+      }
+
+      function renderMcpSelector() {
+        if (!mcpDemoEnabled) return;
+        const list = document.querySelector('#mcp-selector-list');
+        list.replaceChildren();
+        const available = mcpConnectors.filter((connector) => connector.available);
+        mcpSelectorDraftIds = mcpSelectorDraftIds.filter((id) => available.some((connector) => connector.id === id));
+        updateMcpSelectorBudget();
+        if (!mcpConnectors.length) {
+          const empty = document.createElement('div');
+          empty.className = 'mcp-selector-empty';
+          empty.textContent = 'No connectors configured yet. Add one on the Connectors page.';
+          list.append(empty);
+          return;
+        }
+        for (const connector of mcpConnectors) {
+          const option = document.createElement('label');
+          option.className = 'mcp-selector-option';
+          const inputElement = document.createElement('input');
+          inputElement.type = 'checkbox';
+          inputElement.checked = mcpSelectorDraftIds.includes(connector.id);
+          inputElement.dataset.connectorId = String(connector.id);
+          inputElement.disabled = !connector.available || wouldExceedMcpToolBudget(connector, inputElement.checked);
+          inputElement.addEventListener('change', () => {
+            mcpSelectorDraftIds = inputElement.checked
+              ? [...new Set([...mcpSelectorDraftIds, connector.id])]
+              : mcpSelectorDraftIds.filter((id) => id !== connector.id);
+            updateMcpSelectorBudget();
+          });
+          if (inputElement.disabled && connector.available) {
+            inputElement.title = `Selecting this connector would exceed the ${maxAgentTools}-tool limit.`;
+          }
+          const name = document.createElement('span');
+          name.className = 'mcp-selector-option-name';
+          name.textContent = connector.name;
+          const state = document.createElement('span');
+          state.className = 'mcp-selector-option-state';
+          state.textContent = connector.available ? `${connector.tool_count} tool${connector.tool_count === 1 ? '' : 's'}` : 'Unavailable';
+          option.append(inputElement, name, state);
+          list.append(option);
+        }
+      }
+
+      function selectedMcpToolCount(ids) {
+        return mcpConnectors
+          .filter((connector) => ids.includes(connector.id) && connector.available)
+          .reduce((total, connector) => total + Math.max(0, Number(connector.tool_count) || 0), 0);
+      }
+
+      function wouldExceedMcpToolBudget(connector, isSelected) {
+        const collectionSearchSlots = selectedCollectionIds.length ? 1 : 0;
+        const reservedSlots = builtInAgentToolSlots + collectionSearchSlots;
+        const selectedCount = selectedMcpToolCount(mcpSelectorDraftIds);
+        const projectedCount = selectedCount
+          - (isSelected ? Math.max(0, Number(connector.tool_count) || 0) : 0)
+          + (isSelected ? 0 : Math.max(0, Number(connector.tool_count) || 0))
+          + reservedSlots;
+        return projectedCount > maxAgentTools;
+      }
+
+      function updateMcpSelectorBudget() {
+        const budget = document.querySelector('#mcp-selector-budget');
+        if (!budget) return;
+        const collectionSearchSlots = selectedCollectionIds.length ? 1 : 0;
+        const used = selectedMcpToolCount(mcpSelectorDraftIds) + builtInAgentToolSlots + collectionSearchSlots;
+        budget.textContent = `${used} / ${maxAgentTools} tool slots selected · built-in date/time reserves one slot${collectionSearchSlots ? ' · local document search reserves one slot' : ''}${used > maxAgentTools ? ' · Deselect a connector to continue.' : ''}`;
+        budget.dataset.overLimit = String(used > maxAgentTools);
+        for (const inputElement of document.querySelectorAll('#mcp-selector-list input[data-connector-id]')) {
+          const connector = mcpConnectors.find((item) => String(item.id) === inputElement.dataset.connectorId);
+          if (!connector) continue;
+          inputElement.disabled = !connector.available || wouldExceedMcpToolBudget(connector, inputElement.checked);
+          inputElement.title = inputElement.disabled && connector.available
+            ? `Selecting this connector would exceed the ${maxAgentTools}-tool limit.`
+            : '';
+        }
+      }
+
+      function addMcpHeaderRow(name = '', value = '') {
+        const row = document.createElement('div');
+        row.className = 'mcp-header-row';
+        const key = document.createElement('input');
+        key.className = 'mcp-header-name';
+        key.autocomplete = 'off';
+        key.placeholder = 'Header name';
+        key.setAttribute('aria-label', 'Authentication header name');
+        key.value = name;
+        const secret = document.createElement('input');
+        secret.className = 'mcp-header-value';
+        secret.type = 'password';
+        secret.autocomplete = 'new-password';
+        secret.placeholder = 'Header value';
+        secret.setAttribute('aria-label', 'Authentication header value');
+        secret.value = value;
+        const remove = document.createElement('button');
+        remove.className = 'mcp-remove-header';
+        remove.type = 'button';
+        remove.textContent = '×';
+        remove.setAttribute('aria-label', 'Remove authentication header');
+        remove.addEventListener('click', () => row.remove());
+        row.append(key, secret, remove);
+        document.querySelector('#mcp-header-list').append(row);
+      }
+
+      function resetMcpConnectorForm() {
+        editingMcpConnectorId = null;
+        document.querySelector('#mcp-connector-form').reset();
+        document.querySelector('#mcp-header-list').replaceChildren();
+        document.querySelector('#mcp-auth-replace-label').hidden = true;
+        document.querySelector('#mcp-auth-replace').checked = false;
+        document.querySelector('#mcp-save').textContent = 'Add connector';
+        document.querySelector('#mcp-cancel-edit').hidden = true;
+      }
+
+      function editMcpConnector(connector) {
+        editingMcpConnectorId = connector.id;
+        document.querySelector('#mcp-name').value = connector.name;
+        document.querySelector('#mcp-endpoint').value = connector.endpoint;
+        document.querySelector('#mcp-header-list').replaceChildren();
+        document.querySelector('#mcp-auth-replace').checked = false;
+        document.querySelector('#mcp-auth-replace-label').hidden = !connector.has_custom_headers;
+        document.querySelector('#mcp-save').textContent = 'Save changes';
+        document.querySelector('#mcp-cancel-edit').hidden = false;
+        document.querySelector('#mcp-name').focus();
+      }
+
+      async function testMcpConnector(id, button) {
+        button.disabled = true;
+        const oldText = button.textContent;
+        button.textContent = 'Testing…';
+        try {
+          const connector = await invoke('test_mcp_connector', { id });
+          await refreshMcpConnectors();
+          showNotice(connector.available
+            ? `Connected to ${connector.name}; discovered ${connector.tool_count} tool${connector.tool_count === 1 ? '' : 's'}.`
+            : `Could not connect to ${connector.name}: ${connector.last_error || 'the server is unavailable.'}`, connector.available ? 'success' : 'warning');
+        } catch (error) {
+          showNotice(`Connector test failed: ${String(error)}`, 'error');
+        } finally {
+          button.disabled = false;
+          button.textContent = oldText;
+        }
+      }
+
+      async function deleteMcpConnector(connector) {
+        if (!window.confirm(`Delete “${connector.name}”? This also removes it from conversation selections.`)) return;
+        try {
+          await invoke('delete_mcp_connector', { id: connector.id });
+          selectedMcpConnectorIds = selectedMcpConnectorIds.filter((id) => id !== connector.id);
+          await refreshMcpConnectors();
+          showNotice('Connector deleted.', 'success');
+        } catch (error) {
+          showNotice(String(error), 'error');
+        }
+      }
+
+      async function saveMcpConnectorsForConversation(conversationId, connectorIds) {
+        if (conversationId == null) return;
+        await invoke('set_conversation_mcp_connectors', { conversationId, connectorIds });
+      }
+
+      async function initializeMcpDemo() {
+        if (!invoke) {
+          document.querySelectorAll('[data-mcp-demo]').forEach((element) => element.remove());
+          return;
+        }
+        try {
+          mcpDemoEnabled = await invoke('mcp_demo_enabled');
+        } catch (error) {
+          document.querySelectorAll('[data-mcp-demo]').forEach((element) => element.remove());
+          showNotice(`MCP demo feature status could not be loaded: ${String(error)}`, 'warning');
+          return;
+        }
+        if (!mcpDemoEnabled) {
+          document.querySelectorAll('[data-mcp-demo]').forEach((element) => element.remove());
+          return;
+        }
+        document.querySelector('#mcp-nav').hidden = false;
+        document.querySelector('#mcp-connectors-button').hidden = false;
+        if (window.__TAURI__?.event?.listen) {
+          window.__TAURI__.event.listen('mcp-connector-failed', async (event) => {
+            const name = event.payload?.connector_name || 'A connector';
+            showNotice(`${name} became unavailable and was removed from this chat's selection. Reconnect it from the Connectors page.`, 'warning', 0);
+            await refreshMcpConnectors();
+          }).catch((error) => showNotice(`Connector status updates could not be loaded: ${String(error)}`, 'warning'));
+        }
+        setInterval(() => {
+          if (currentMcpPage || document.querySelector('#mcp-connector-dialog')?.open) refreshMcpConnectors();
+        }, 60000);
+        await refreshMcpConnectors();
       }
 
       function renderCollectionManager() {
@@ -1117,18 +1468,20 @@
         send.textContent = 'Update'; document.querySelector('#cancel-edit').hidden = false; input.focus();
       }
 
-      function appendUserActions(article, message) {
+      function appendUserActions(article, message, responsePending = false) {
         const actions = document.createElement('div'); actions.className = 'message-actions';
         actions.append(actionButton('⧉', 'Copy message', () => copyMessage(message.content)));
-        actions.append(actionButton('✎', 'Edit message', () => beginEditTurn(message, article)));
-        actions.append(actionButton('⌫', 'Delete turn', async () => {
-          if (!activeConversationId) return;
-          try {
-            const id = await invoke('remove_turn_from_timeline', { conversationId: activeConversationId, anchorMessageId: message.id });
-            activeConversationId = id; await openConversation(id);
-            showNotice('This turn and all later messages were deleted from this timeline.', 'success');
-          } catch (error) { showNotice(String(error), 'error'); }
-        }));
+        if (!responsePending) {
+          actions.append(actionButton('✎', 'Edit message', () => beginEditTurn(message, article)));
+          actions.append(actionButton('⌫', 'Delete turn', async () => {
+            if (!activeConversationId) return;
+            try {
+              const id = await invoke('remove_turn_from_timeline', { conversationId: activeConversationId, anchorMessageId: message.id });
+              activeConversationId = id; await openConversation(id);
+              showNotice('This turn and all later messages were deleted from this timeline.', 'success');
+            } catch (error) { showNotice(String(error), 'error'); }
+          }));
+        }
         article.append(actions);
       }
 
@@ -1147,7 +1500,7 @@
         article.append(actions);
       }
 
-      function addMessage(role, text, meta = '', sources = [], messageId = null, messageCollections = null, attachments = [], previousUser = null) {
+      function addMessage(role, text, meta = '', sources = [], messageId = null, messageCollections = null, attachments = [], previousUser = null, toolInvocations = [], responsePending = false) {
         welcome.hidden = true;
         const article = document.createElement('article');
         article.className = `message ${role}`;
@@ -1163,8 +1516,20 @@
           if (Array.isArray(meta)) renderMetrics(detail, meta); else detail.textContent = meta;
           article.append(detail);
         }
+        if (role === 'assistant' && toolInvocations.length) {
+          renderAgentActivity(article, {
+            toolLog: toolInvocations.map((invocation) => ({
+              invocationId: invocation.id,
+              toolName: String(invocation.tool_name || 'tool').split('__').pop(),
+              connectorName: invocation.connector_name || 'Tool',
+              status: invocation.status,
+              summary: invocation.summary,
+              elapsedMs: invocation.elapsed_ms,
+            })),
+          });
+        }
         appendSources(article, sources, role === 'assistant' ? (previousUser?.attachments ?? []) : []);
-        if (role === 'user' && messageId != null) appendUserActions(article, { id: messageId, content: text, collection_ids: messageCollections, attachments, article });
+        if (role === 'user' && messageId != null) appendUserActions(article, { id: messageId, content: text, collection_ids: messageCollections, attachments, article }, responsePending);
         if (role === 'assistant' && messageId != null) appendAssistantActions(article, messageId, previousUser);
         messages.append(article);
         conversation.scrollTop = conversation.scrollHeight;
@@ -1273,7 +1638,7 @@
         if (item.output_tokens != null) values.push({ value: `${item.output_tokens} tokens`, description: 'Output tokens generated' });
         if (item.elapsed_ms != null) values.push({ value: `${(item.elapsed_ms / 1000).toFixed(1)}s`, description: 'Total response time, including prompt processing and generation' });
         if (item.time_to_first_token_ms != null) values.push({ value: `${(item.time_to_first_token_ms / 1000).toFixed(1)}s first token`, description: 'Time from sending the request until the first response text arrived' });
-        if (item.output_tokens_per_second != null) values.push({ value: `${item.output_tokens_per_second.toFixed(1)} tok/s`, description: 'Output tokens generated per second after the first token arrived' });
+        if (item.output_tokens_per_second != null) values.push({ value: `${item.output_tokens_per_second.toFixed(1)} tok/s`, description: 'Output token throughput measured across the streamed response' });
         return values;
       }
 
@@ -1378,6 +1743,7 @@
                 activeConversationArchived = false;
                 input.disabled = false;
                 document.querySelector('#attach-files').disabled = false;
+                if (mcpDemoEnabled) document.querySelector('#mcp-connectors-button').disabled = false;
                 updateSendButton();
               }
               showArchived = false;
@@ -1396,10 +1762,15 @@
         activeConversationArchived = false;
         input.disabled = false;
         document.querySelector('#attach-files').disabled = false;
+        if (mcpDemoEnabled) {
+          selectedMcpConnectorIds = [];
+          updateMcpButton();
+        }
         updateSendButton();
         messages.replaceChildren();
         activeConversationId = null;
         activeConversationRootId = null;
+        if (mcpDemoEnabled) refreshMcpConnectors();
         branchFromMessageId = null;
         branchEditMessageElement = null;
         editingOriginalCollectionIds = null;
@@ -1441,9 +1812,8 @@
           activeConversationId = id;
           activeConversationRootId = data.conversation.id;
           activeConversationArchived = Boolean(data.conversation.archived);
-          input.disabled = activeConversationArchived;
-          document.querySelector('#attach-files').disabled = activeConversationArchived;
-          updateSendButton();
+          if (mcpDemoEnabled) await refreshMcpConnectors();
+          setMessageSubmissionPending(messageSubmissionPending);
           renderTimelineControl(data.timeline_ids, data.timeline_index);
           branchFromMessageId = null;
           selectedCollectionIds = (data.selected_collection_ids ?? availableCollections.map((collection) => collection.id)).filter((id) => availableCollections.some((collection) => collection.id === id));
@@ -1456,11 +1826,14 @@
           const timelineAnchors = new Set(data.timeline_anchor_message_ids ?? []);
           const pendingGeneration = activeGenerations.get(String(id));
           let previousUserTurn = null;
-          for (const item of data.messages) {
-            if (item.role === 'user' && item.input_tokens_per_second > 0) lastObservedPromptSpeed = item.input_tokens_per_second;
-            if (item.role === 'assistant' && item.output_tokens_per_second > 0) lastObservedOutputSpeed = item.output_tokens_per_second;
+          for (let index = 0; index < data.messages.length; index++) {
+            const item = data.messages[index];
             const isPending = item.role === 'assistant' && item.generation_status === 'pending';
-            const article = addMessage(item.role, item.content, item.role === 'user' ? userMessageMeta(item) : assistantMessageMeta(item), item.sources, isPending ? null : item.id, item.collection_ids, item.attachments ?? [], previousUserTurn);
+            const nextMessage = data.messages[index + 1];
+            const responsePending = item.role === 'user'
+              && nextMessage?.role === 'assistant'
+              && nextMessage.generation_status === 'pending';
+            const article = addMessage(item.role, item.content, item.role === 'user' ? userMessageMeta(item) : assistantMessageMeta(item), item.sources, isPending ? null : item.id, item.collection_ids, item.attachments ?? [], previousUserTurn, item.tool_invocations ?? [], responsePending);
             if (isPending) showPendingAssistant(article, pendingGeneration ?? { text: '' });
             if (item.role === 'user') previousUserTurn = { id: item.id, content: item.content, collection_ids: item.collection_ids, attachments: item.attachments ?? [], article };
             if (item.id === attachmentImportMessageId && item.attachments?.length) { article.querySelector('.message-attachments')?.remove(); appendMessageAttachments(article, item.attachments, true); }
@@ -1504,10 +1877,24 @@
           catch (error) { generationStopPending = false; updateSendButton(); showNotice(String(error), 'warning'); }
           return;
         }
+        if (messageSubmissionPending) return;
         const text = input.value.trim();
         if ((!text && pendingAttachments.length === 0) || send.disabled) return;
         if (activeConversationArchived) { showNotice('Restore this archived conversation before continuing.', 'warning'); return; }
         if (!invoke) { addMessage('assistant', 'The desktop bridge is unavailable. Launch this screen from the installed application.'); return; }
+        const originalConversationId = activeConversationId;
+        const originalBranchMessageId = branchFromMessageId;
+        const selectedForTurn = [...selectedCollectionIds];
+        const connectorIdsForTurn = [...selectedMcpConnectorIds];
+        const attachments = pendingAttachments.filter((file) => !file.processing && (file.content || file.media_data_base64)).map((file) => ({ filename: file.filename, path: file.path, byte_size: file.byte_size, estimated_tokens: file.estimated_tokens, content: file.content ?? '', media_mime: file.media_mime ?? null, media_format: file.media_format ?? null, media_data_base64: file.media_data_base64 ?? null }));
+        const attachmentTokens = attachments.reduce((sum, file) => sum + file.estimated_tokens, 0);
+        if (pendingAttachments.some((file) => file.processing)) { showNotice('Wait for attached files to finish processing.', 'info'); return; }
+        if (attachmentTokens > 5000) {
+          const ids = await chooseCollectionsForAttachment('these attachments', 'The files exceed the 5,000-token chat limit. Select collections to index them for future retrieval instead.');
+          if (ids?.length) { try { await addFilesToSelectedCollections(attachments.map((file) => file.path), ids, 'the selected attachments'); pendingAttachments = []; renderPendingAttachments(); } catch (error) { showNotice(String(error), 'error'); } }
+          return;
+        }
+        setMessageSubmissionPending(true);
         try {
           let status = await invoke('service_status');
           if (status.models_initializing) {
@@ -1530,21 +1917,15 @@
             const warning = document.querySelector('#models-asleep-dialog');
             if (warning.open) warning.close();
           }
-        } catch (error) { showNotice(String(error), 'error'); return; }
-        const originalConversationId = activeConversationId;
-        const originalBranchMessageId = branchFromMessageId;
-        const selectedForTurn = [...selectedCollectionIds];
-        const attachments = pendingAttachments.filter((file) => !file.processing && (file.content || file.media_data_base64)).map((file) => ({ filename: file.filename, path: file.path, byte_size: file.byte_size, estimated_tokens: file.estimated_tokens, content: file.content ?? '', media_mime: file.media_mime ?? null, media_format: file.media_format ?? null, media_data_base64: file.media_data_base64 ?? null }));
-        const attachmentTokens = attachments.reduce((sum, file) => sum + file.estimated_tokens, 0);
-        if (pendingAttachments.some((file) => file.processing)) { showNotice('Wait for attached files to finish processing.', 'info'); return; }
-        if (attachmentTokens > 5000) {
-          const ids = await chooseCollectionsForAttachment('these attachments', 'The files exceed the 5,000-token chat limit. Select collections to index them for future retrieval instead.');
-          if (ids?.length) { try { await addFilesToSelectedCollections(attachments.map((file) => file.path), ids, 'the selected attachments'); pendingAttachments = []; renderPendingAttachments(); } catch (error) { showNotice(String(error), 'error'); } }
+        } catch (error) {
+          setMessageSubmissionPending(false);
+          showNotice(String(error), 'error');
           return;
         }
         const requestId = crypto.randomUUID();
         let start = null;
         let unlisten = null;
+        let unlistenAgentProgress = null;
         try {
           start = await invoke('begin_message', {
             content: text,
@@ -1553,6 +1934,9 @@
             collectionIds: selectedForTurn,
             attachments,
           });
+          if (mcpDemoEnabled) {
+            await saveMcpConnectorsForConversation(start.root_conversation_id, connectorIdsForTurn);
+          }
           const generation = {
             requestId,
             conversationId: start.conversation_id,
@@ -1560,21 +1944,14 @@
             userMessageId: start.user_message_id,
             assistantMessageId: start.assistant_message_id,
             text: '',
+            currentStep: 'Thinking',
+            toolLog: [],
             bubble: null,
-            startedAt: Date.now(),
-            estimatedSeconds: estimateResponseSeconds(text, attachments),
-            expectedOutputTokens: 80,
-            promptSpeed: null,
-            promptProgress: null,
-            lastProgressAt: 0,
-            lastProcessedTokens: 0,
-            progressPolling: false,
-            firstTokenAt: null,
-            timer: null,
-            progressTimer: null,
+            finalResponseStarted: false,
           };
           activeGenerations.set(String(start.conversation_id), generation);
           currentGenerationId = requestId;
+          setMessageSubmissionPending(false);
           generationStopPending = false;
           activeConversationId = start.conversation_id;
           activeConversationRootId = start.root_conversation_id;
@@ -1591,20 +1968,51 @@
             unlisten = await window.__TAURI__.event.listen('chat-stream', (streamEvent) => {
               if (streamEvent.payload?.request_id !== requestId) return;
               generation.text += streamEvent.payload.delta ?? '';
-              if (generation.text && !generation.firstTokenAt) {
-                generation.firstTokenAt = Date.now();
-                generation.promptProgress = null;
-                clearGenerationEta(generation);
+              if (generation.text && !generation.finalResponseStarted) {
+                generation.finalResponseStarted = true;
+                generation.currentStep = '';
+                generation.article?.querySelector('.agent-activity-details')?.removeAttribute('open');
+                if (generation.article) renderAgentActivity(generation.article, generation);
               }
               if (generation.bubble) {
+                generation.article?.classList.remove('is-generating');
                 generation.bubble.dataset.waiting = 'false';
                 generation.bubble.classList.remove('thinking-indicator');
                 generation.bubble.removeAttribute('role');
                 generation.bubble.removeAttribute('aria-label');
                 generation.bubble.textContent = generation.text;
               }
-              if (!generation.firstTokenAt) updateGenerationEstimate(generation);
               if (String(activeConversationId) === String(start.conversation_id)) conversation.scrollTop = conversation.scrollHeight;
+            });
+            unlistenAgentProgress = await window.__TAURI__.event.listen('chat-agent-progress', (progressEvent) => {
+              const payload = progressEvent.payload;
+              if (payload?.request_id !== requestId) return;
+              const connectorName = payload.connector_name || 'Tool';
+              const toolName = String(payload.tool_name || 'tool').split('__').pop();
+              if (payload.phase === 'tool_start') {
+                generation.currentStep = `Invoking: ${toolName}`;
+                generation.toolLog.push({
+                  invocationId: payload.invocation_id,
+                  toolName,
+                  connectorName,
+                  status: 'running',
+                  summary: '',
+                  elapsedMs: null,
+                });
+              } else if (payload.phase === 'tool_end') {
+                const entry = generation.toolLog.find((item) => item.invocationId === payload.invocation_id);
+                if (entry) {
+                  entry.status = payload.status || 'complete';
+                  entry.summary = payload.summary || 'Response received.';
+                  entry.elapsedMs = Number.isFinite(Number(payload.elapsed_ms)) ? Number(payload.elapsed_ms) : null;
+                }
+                generation.currentStep = `${connectorName}: ${payload.summary || 'Response received.'}`;
+              } else if (payload.phase === 'finalizing') {
+                generation.currentStep = 'Preparing final response…';
+              } else if (payload.phase === 'complete') {
+                generation.currentStep = '';
+              }
+              if (generation.article) showPendingAssistant(generation.article, generation);
             });
           }
           const replyPromise = invoke('send_message', {
@@ -1619,10 +2027,6 @@
           await openConversation(start.conversation_id);
           await refreshHistory();
           const reply = await replyPromise;
-          if (reply.input_tokens_per_second > 0) lastObservedPromptSpeed = reply.input_tokens_per_second;
-          if (reply.output_tokens_per_second > 0) lastObservedOutputSpeed = reply.output_tokens_per_second;
-          if (generation.timer) clearInterval(generation.timer);
-          if (generation.progressTimer) clearInterval(generation.progressTimer);
           activeGenerations.delete(String(start.conversation_id));
           if (currentGenerationId === requestId) currentGenerationId = null;
           generationStopPending = false;
@@ -1631,11 +2035,13 @@
           if (String(activeConversationId) === String(reply.conversation_id)) await openConversation(reply.conversation_id);
           await refreshHistory();
         } catch (error) {
+          setMessageSubmissionPending(false);
           if (start) {
-            try { await invoke('finish_failed_generation', { conversationId: start.conversation_id, assistantMessageId: start.assistant_message_id, error: String(error) }); } catch (_) {}
-            const failedGeneration = activeGenerations.get(String(start.conversation_id));
-            if (failedGeneration?.timer) clearInterval(failedGeneration.timer);
-            if (failedGeneration?.progressTimer) clearInterval(failedGeneration.progressTimer);
+            try {
+              await invoke('finish_failed_generation', { conversationId: start.conversation_id, assistantMessageId: start.assistant_message_id, error: String(error) });
+            } catch (persistError) {
+              showNotice(`The failed response could not be saved: ${String(persistError)}`, 'error');
+            }
             activeGenerations.delete(String(start.conversation_id));
           }
           if (currentGenerationId === requestId) currentGenerationId = null;
@@ -1645,7 +2051,9 @@
           await refreshHistory();
           showNotice(String(error), 'error');
         } finally {
+          setMessageSubmissionPending(false);
           if (unlisten) unlisten();
+          if (unlistenAgentProgress) unlistenAgentProgress();
           updateSendButton();
           input.focus();
           if (start && String(activeConversationId) === String(start.conversation_id)) conversation.scrollTop = conversation.scrollHeight;
@@ -1707,6 +2115,75 @@
         catch (error) { showNotice(String(error), 'error'); }
       });
       document.querySelector('#collections-nav').addEventListener('click', () => showCollectionPage(true));
+      document.querySelector('#mcp-nav').addEventListener('click', () => showMcpPage(true));
+      document.querySelector('#mcp-back').addEventListener('click', () => showMcpPage(false));
+      document.querySelector('#mcp-add-header').addEventListener('click', () => addMcpHeaderRow());
+      document.querySelector('#mcp-cancel-edit').addEventListener('click', resetMcpConnectorForm);
+      document.querySelector('#mcp-connector-form').addEventListener('submit', async (event) => {
+        event.preventDefault();
+        const name = document.querySelector('#mcp-name').value.trim();
+        const endpoint = document.querySelector('#mcp-endpoint').value.trim();
+        const wasEditing = editingMcpConnectorId != null;
+        const headerRows = [...document.querySelectorAll('#mcp-header-list .mcp-header-row')];
+        let headers = [];
+        try {
+          headers = headerRows.map((row) => {
+            const headerName = row.querySelector('.mcp-header-name').value.trim();
+            const value = row.querySelector('.mcp-header-value').value;
+            if (!headerName || !value) throw new Error('Each authentication header needs both a name and a value.');
+            return { name: headerName, value };
+          });
+          const replaceHeaders = document.querySelector('#mcp-auth-replace').checked;
+          let customHeaders = headers.length ? headers : null;
+          if (wasEditing
+            && document.querySelector('#mcp-auth-replace-label').hidden === false
+            && !replaceHeaders) customHeaders = null;
+          else if (replaceHeaders) customHeaders = headers;
+          const saved = await invoke('save_mcp_connector', {
+            id: editingMcpConnectorId,
+            name,
+            endpoint,
+            customHeaders,
+          });
+          resetMcpConnectorForm();
+          await refreshMcpConnectors();
+          showNotice(wasEditing ? `Updated connector “${saved.name}”. Test it before using it again.` : `Added connector “${saved.name}”. Test it before selecting it in chat.`, 'success');
+        } catch (error) {
+          showNotice(String(error), 'error');
+        }
+      });
+      document.querySelector('#mcp-connectors-button').addEventListener('click', async () => {
+        if (!await refreshMcpConnectors()) return;
+        mcpSelectorDraftIds = [...selectedMcpConnectorIds];
+        renderMcpSelector();
+        document.querySelector('#mcp-connector-dialog').showModal();
+      });
+      document.querySelector('#mcp-connector-dialog').addEventListener('click', (event) => {
+        if (event.target === event.currentTarget) event.currentTarget.close();
+      });
+      document.querySelector('#mcp-selector-done').addEventListener('click', async () => {
+        const dialog = document.querySelector('#mcp-connector-dialog');
+        const selection = [...mcpSelectorDraftIds];
+        const selectedToolCount = selectedMcpToolCount(selection) + builtInAgentToolSlots + (selectedCollectionIds.length ? 1 : 0);
+        if (selectedToolCount > maxAgentTools) {
+          showNotice(`The agent limit is ${maxAgentTools} tools. Deselect a connector before continuing.`, 'warning');
+          updateMcpSelectorBudget();
+          return;
+        }
+        try {
+          await saveMcpConnectorsForConversation(activeConversationId, selection);
+          selectedMcpConnectorIds = selection;
+          updateMcpButton();
+          dialog.close();
+          if (activeConversationId != null) await refreshMcpConnectors();
+        } catch (error) {
+          showNotice(`Connector selection could not be saved: ${String(error)}`, 'error');
+        }
+      });
+      document.querySelector('#mcp-manage').addEventListener('click', () => {
+        document.querySelector('#mcp-connector-dialog').close();
+        showMcpPage(true);
+      });
       document.querySelector('#collections-back').addEventListener('click', () => showCollectionPage(false));
       document.querySelector('#collection-detail-back').addEventListener('click', () => { activeManagedCollectionId = null; renderCollectionManager(); });
       document.querySelector('#document-content-close').addEventListener('click', () => document.querySelector('#document-content-dialog').close());
@@ -1726,17 +2203,18 @@
       });
       if (window.__TAURI__?.event?.listen) {
         window.__TAURI__.event.listen('collection-import-progress', (event) => handleCollectionImportProgress(event.payload)).catch((error) => showNotice(`Import progress could not be displayed: ${String(error)}`, 'warning'));
-        window.__TAURI__.event.listen('tauri://drag-enter', () => { const overlay = document.querySelector('#drop-overlay'); overlay.textContent = currentCollectionPage ? 'Drop files to add them to this collection' : 'Drop files to attach them to this chat'; overlay.hidden = false; });
+        window.__TAURI__.event.listen('tauri://drag-enter', () => { const overlay = document.querySelector('#drop-overlay'); overlay.textContent = currentCollectionPage ? 'Drop files to add them to this collection' : currentMcpPage ? 'File drops are unavailable on the Connectors page' : 'Drop files to attach them to this chat'; overlay.hidden = false; });
         window.__TAURI__.event.listen('tauri://drag-leave', () => { document.querySelector('#drop-overlay').hidden = true; });
         window.__TAURI__.event.listen('tauri://drag-drop', (event) => {
           document.querySelector('#drop-overlay').hidden = true;
           const paths = event.payload?.paths;
-          if (Array.isArray(paths) && paths.length) { if (currentCollectionPage) importFiles(paths); else attachChatFiles(paths); }
+          if (Array.isArray(paths) && paths.length) { if (currentCollectionPage) importFiles(paths); else if (!currentMcpPage) attachChatFiles(paths); }
         });
       }
       refreshStatus();
       refreshHistory();
       refreshCollections();
+      initializeMcpDemo();
       setInterval(refreshStatus, 5000);
     </script>
   </body>

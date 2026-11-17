@@ -20,40 +20,17 @@ pub fn open(app_data_dir: &Path) -> Result<Connection, String> {
     let database_path = app_data_dir.join(DATABASE_NAME);
     let protected_key_path = app_data_dir.join(KEY_NAME);
     let mut key = load_or_create_key(&protected_key_path, database_path.exists())?;
+    let connection = open_encrypted_connection(&database_path, &mut key)?;
+    let pragma_result = connection.execute_batch(
+        "PRAGMA foreign_keys = ON;
+         PRAGMA journal_mode = WAL;",
+    );
+    pragma_result
+        .map_err(|error| format!("Could not configure encrypted local storage: {error}"))?;
 
-    let connection = match Connection::open(&database_path) {
-        Ok(connection) => connection,
-        Err(error) => {
-            key.fill(0);
-            return Err(format!(
-                "Could not open the encrypted local database: {error}"
-            ));
-        }
-    };
-    let mut hex_key = String::with_capacity(key.len() * 2);
-    for byte in &key {
-        use std::fmt::Write;
-        let _ = write!(hex_key, "{byte:02x}");
-    }
-    key.fill(0);
-    let mut pragma = format!("PRAGMA key = \"x'{hex_key}'\";");
-    let pragma_result = connection.execute_batch(&pragma);
-    // Best-effort clearing of the temporary textual copy of the data key.
-    unsafe { pragma.as_bytes_mut().fill(0) };
-    unsafe { hex_key.as_bytes_mut().fill(0) };
-    pragma_result.map_err(|error| format!("Could not unlock the local database: {error}"))?;
-
-    let cipher_version: String = connection
-        .query_row("PRAGMA cipher_version", [], |row| row.get(0))
-        .map_err(|error| format!("SQLCipher is unavailable: {error}"))?;
-    if cipher_version.is_empty() {
-        return Err("SQLCipher did not report an active encryption version.".into());
-    }
     connection
         .execute_batch(
-            "PRAGMA foreign_keys = ON;
-             PRAGMA journal_mode = WAL;
-             CREATE TABLE IF NOT EXISTS conversations (
+            "CREATE TABLE IF NOT EXISTS conversations (
                  id INTEGER PRIMARY KEY AUTOINCREMENT,
                  title TEXT NOT NULL,
                  created_at INTEGER NOT NULL,
@@ -151,15 +128,30 @@ pub fn open(app_data_dir: &Path) -> Result<Connection, String> {
                  distance REAL NOT NULL,
                  PRIMARY KEY(message_id, source_index)
              );
+             CREATE TABLE IF NOT EXISTS agent_tool_invocations (
+                 id INTEGER PRIMARY KEY AUTOINCREMENT,
+                 assistant_message_id INTEGER NOT NULL REFERENCES messages(id) ON DELETE CASCADE,
+                 sequence INTEGER NOT NULL,
+                 tool_name TEXT NOT NULL,
+                 connector_name TEXT NOT NULL,
+                 status TEXT NOT NULL CHECK(status IN ('running', 'complete', 'failed', 'skipped', 'interrupted')),
+                 summary TEXT NOT NULL DEFAULT '',
+                 elapsed_ms INTEGER,
+                 created_at INTEGER NOT NULL,
+                 UNIQUE(assistant_message_id, sequence)
+             );
+             CREATE INDEX IF NOT EXISTS agent_tool_invocations_message_order
+                 ON agent_tool_invocations(assistant_message_id, sequence);
+             CREATE VIRTUAL TABLE IF NOT EXISTS chunk_vectors USING vec0(embedding float[768]);
              CREATE TABLE IF NOT EXISTS index_metadata (
                  key TEXT PRIMARY KEY,
                  value TEXT NOT NULL
              );
-             CREATE VIRTUAL TABLE IF NOT EXISTS chunk_vectors USING vec0(embedding float[768]);
              INSERT OR IGNORE INTO collections(name, created_at)
                  VALUES ('General', CAST(strftime('%s', 'now') AS INTEGER));",
         )
         .map_err(|error| format!("Could not initialize local conversation history: {error}"))?;
+
     ensure_chunk_media_columns(&connection)?;
     ensure_document_media_column(&connection)?;
     let saved_fingerprint: Option<String> = connection
@@ -181,6 +173,12 @@ pub fn open(app_data_dir: &Path) -> Result<Connection, String> {
             [],
         )
         .map_err(|error| format!("Could not recover interrupted chat history: {error}"))?;
+    connection
+        .execute(
+            "UPDATE agent_tool_invocations SET status = 'interrupted', summary = 'Tool call was interrupted before the app closed.' WHERE status = 'running'",
+            [],
+        )
+        .map_err(|error| format!("Could not recover interrupted tool activity: {error}"))?;
     connection.execute(
         "INSERT OR IGNORE INTO chunk_search(rowid, content, filename) SELECT c.id, c.content, d.filename FROM document_chunks c JOIN documents d ON d.id = c.document_id",
         [],
@@ -199,6 +197,39 @@ pub fn open(app_data_dir: &Path) -> Result<Connection, String> {
             [INDEX_FINGERPRINT],
         )
         .map_err(|error| format!("Could not save the local search index version: {error}"))?;
+    #[cfg(feature = "mcp-demo")]
+    crate::mcp_demo::ensure_schema(&connection)?;
+    Ok(connection)
+}
+
+pub fn open_agent_memory_connection(app_data_dir: &Path) -> Result<Connection, String> {
+    let database_path = app_data_dir.join(DATABASE_NAME);
+    let protected_key_path = app_data_dir.join(KEY_NAME);
+    let mut key = load_or_create_key(&protected_key_path, true)?;
+    open_encrypted_connection(&database_path, &mut key)
+}
+
+fn open_encrypted_connection(database_path: &Path, key: &mut [u8]) -> Result<Connection, String> {
+    let connection = Connection::open(database_path)
+        .map_err(|error| format!("Could not open the encrypted local database: {error}"))?;
+    let mut hex_key = String::with_capacity(key.len() * 2);
+    for byte in key.iter() {
+        use std::fmt::Write;
+        let _ = write!(hex_key, "{byte:02x}");
+    }
+    key.fill(0);
+    let mut pragma = format!("PRAGMA key = \"x'{hex_key}'\";");
+    let pragma_result = connection.execute_batch(&pragma);
+    // Best-effort clearing of the temporary textual copy of the data key.
+    unsafe { pragma.as_bytes_mut().fill(0) };
+    unsafe { hex_key.as_bytes_mut().fill(0) };
+    pragma_result.map_err(|error| format!("Could not unlock the local database: {error}"))?;
+    let cipher_version: String = connection
+        .query_row("PRAGMA cipher_version", [], |row| row.get(0))
+        .map_err(|error| format!("SQLCipher is unavailable: {error}"))?;
+    if cipher_version.is_empty() {
+        return Err("SQLCipher did not report an active encryption version.".into());
+    }
     Ok(connection)
 }
 

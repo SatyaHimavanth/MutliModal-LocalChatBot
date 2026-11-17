@@ -8,6 +8,8 @@
 
 # Generated QA output (the script and documentation are source files).
 /qa/artifacts/
+/qa/.venv/
+/qa/__pycache__/
 
 # Rust and Tauri build output.
 /target/

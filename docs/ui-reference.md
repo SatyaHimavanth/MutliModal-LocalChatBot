@@ -5,12 +5,14 @@ The user supplied two screenshots of the llama.cpp web UI as visual references. 
 ## Confirmed adaptations
 
 - Put a **collections selector** in the composer where the reference UI places its model selector. It supports all, none, or a chosen subset of the employee's collections.
+- When the default-off `mcp-demo` build feature is enabled, put the MCP connector selector beside the attachment button. The selector lists connection availability and lets users opt connectors into the current conversation.
+- Keep connector administration on a separate page; when the build feature is disabled, remove its navigation, composer control, page, and dialog from the UI.
 - New chats select all collections by default.
 - If a user changes collections during a chat, warn that future turns will retrieve from a different context. Apply the change only to future turns.
 - Editing a previous user input creates a new timeline. Show the branch position as `<x/y>` near/beneath the edited user input. Preserve the old timeline.
 - If the user changes collections while editing an earlier input, the new timeline uses the newly selected collection set; otherwise it inherits the set from the fork point.
-- Show per-turn token count, elapsed time, and input/output throughput. Keep these details close to the associated user/assistant turn and make their meaning clear (prompt processing vs. generated output).
-- Make retrieved sources/citations and tool-call details inspectable without crowding the default chat view.
+- Show per-turn input/output token totals, elapsed time, and input/output throughput. Keep these details close to the associated user/assistant turn and make their meaning clear (prompt processing vs. generated output). While pending, show the thinking or current tool step without an ETA.
+- Make retrieved sources/citations and tool progress inspectable without crowding the default chat view. Show a prominent current tool step and a collapsible activity log; collapse it when the final answer begins streaming. Persist the safe tool log with its assistant message. Keep raw tool arguments and response bodies hidden, showing only names, status, timing, and safe summaries.
 
 ## Reference image handling
 
