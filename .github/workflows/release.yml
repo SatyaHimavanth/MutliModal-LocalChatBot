@@ -1,0 +1,53 @@
+name: Build Windows release
+
+on:
+  push:
+    tags:
+      - v1.0.0
+
+permissions:
+  contents: write
+
+jobs:
+  windows-installer:
+    runs-on: windows-latest
+    steps:
+      - name: Check out release source
+        uses: actions/checkout@v4
+
+      - name: Install stable Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: x86_64-pc-windows-msvc
+
+      - name: Install Tauri CLI
+        run: cargo install tauri-cli --version 2.12.4 --locked
+
+      - name: Install NSIS
+        run: choco install nsis --yes --no-progress
+
+      - name: Build Windows NSIS installer
+        run: cargo tauri build --bundles nsis --ci --no-sign
+
+      - name: Prepare release assets and checksum
+        shell: pwsh
+        run: |
+          $assetDir = "release-assets"
+          New-Item -ItemType Directory -Force -Path $assetDir | Out-Null
+          $installer = Get-ChildItem "src-tauri/target/release/bundle/nsis/*-setup.exe" | Select-Object -First 1
+          if (-not $installer) { throw "Tauri did not produce an NSIS setup executable." }
+          Copy-Item -LiteralPath $installer.FullName -Destination $assetDir
+          $digest = (Get-FileHash -LiteralPath (Join-Path $assetDir $installer.Name) -Algorithm SHA256).Hash.ToLowerInvariant()
+          "$digest  $($installer.Name)" | Set-Content -Encoding ascii (Join-Path $assetDir "$($installer.Name).sha256")
+          Copy-Item -LiteralPath "docs/setup-guide.md" -Destination (Join-Path $assetDir "setup-guide.md")
+          Copy-Item -LiteralPath "models/app-models.ini" -Destination (Join-Path $assetDir "app-models.ini")
+
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: Multimodal Local Chatbot ${{ github.ref_name }}
+          body_path: CHANGELOG.md
+          files: release-assets/*
+          draft: false
+          prerelease: false

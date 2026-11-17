@@ -1,20 +1,22 @@
 # Changelog
 
-## 1.0.0 — Initial application baseline
+## 1.0.0 — Initial Windows release
 
-This version establishes the first reviewable project snapshot for Windows 11 x64 human testing.
+### Added
 
-### Included
+- Local streamed chat with LFM3-Omni, image/audio chat attachments, Markdown responses, and saved conversation timelines.
+- Local collections with document extraction, embeddings, hybrid vector and BM25 retrieval, and cited source excerpts.
+- Windows user-scoped encrypted chat history and app-managed llama.cpp startup and idle unloading.
+- Windows 11 x64 per-user installer and a separate setup guide for provisioning llama.cpp and model files.
 
-- Tauri desktop shell with local llama.cpp process startup and model lifecycle management.
-- Streaming chat, conversation timelines, collections, document ingestion, hybrid retrieval, and source display.
-- Encrypted local history and indexed document storage on Windows.
-- Text, image, and audio workflows, including locally segmented audio indexing.
-- Project setup, QA evidence, and implementation guidance.
+### Supported platform
 
-### Known limits
+- Windows 11 x64 on CPU.
 
-- The full `langchain-rust` agent/checkpointer integration is not wired in yet.
-- macOS credential storage and file-picker behavior are not implemented or validated.
-- Installer packaging and production memory profiles are not validated; image indexing may need more memory than the target budget allows.
-- Cross-modal audio retrieval quality and multimodal chat accuracy remain limited and need device-level evaluation.
+### Known limitations
+
+- macOS packaging and credential storage are not implemented.
+- `langchain-rust` agent/checkpointer orchestration and broad hardware/runtime validation are not complete.
+- Image indexing may exceed the conservative memory profile; precise image reasoning is unreliable on the example chat model.
+- Audio retrieval segments audio but does not transcribe it; speech retrieval quality is not established.
+- The installer is unsigned and does not bundle llama.cpp or model weights. See [`docs/setup-guide.md`](docs/setup-guide.md).

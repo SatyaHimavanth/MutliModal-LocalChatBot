@@ -38,6 +38,12 @@ cargo tauri build
 
 The app expects the IT-provisioned `vendor/llama.cpp/<platform>/` and `models/` directories beside the executable in a packaged deployment. In development, it resolves them from the repository root. It starts `llama-server` on `127.0.0.1:8080` using `--models-max 2`, then loads both configured models. Tauri keeps them loaded during UI activity and active chat/import work, and unloads them after five idle minutes. It does not depend on `models/start-servers.bat`.
 
+## Windows 1.0.0 setup
+
+See [`docs/setup-guide.md`](docs/setup-guide.md) for the release installer, the required llama.cpp/model folder layout, example model downloads, licensing notes, and startup troubleshooting. The GitHub Release provides the Windows x64 installer and guide; the llama.cpp runtime and model weights are downloaded separately.
+
+See [`CHANGELOG.md`](CHANGELOG.md) for the v1.0.0 feature summary and known release limitations.
+
 ## Intended architecture
 
 | Area | Responsibility |
